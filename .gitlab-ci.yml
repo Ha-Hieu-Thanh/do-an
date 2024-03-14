@@ -1,0 +1,37 @@
+stages:
+  - DeployDevelop
+
+DeployDevelop:
+  stage: DeployDevelop
+  image: 0868124511/amela-node:18.16-buster-slim
+  only: ['develop']
+  script:
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -H "$HOST_DEV" >> ~/.ssh/known_hosts
+    - echo "$PRIVATE_DEPLOY_KEY_DEV" > ~/.ssh/id_rsa
+    - chmod 700 ~/.ssh/id_rsa
+    - echo "$ENV_DEV" > .env
+    - rsync -u --progress -avzh -e "ssh" --rsync-path="sudo rsync" --exclude='.git' . ubuntu@"$HOST_DEV":~/task-manager-backend
+    - ssh ubuntu@"$HOST_DEV" "cd ~/task-manager-backend && export NODE_OPTIONS=--max_old_space_size=8192 && npm install && npm run prebuild && nest build common && nest build cms && nest build client && npm run migration:run && pm2 start pm2-config.json --update-env && pm2 save"
+
+# image: 0868124511/docker-node20.5.0:v1
+# services:
+#   - docker:dind
+# stages:
+#   - build
+# build:
+#   only:
+#     - develop
+#   stage: build
+#   script:
+#     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+#     - echo "$ENV_DEV" > .env
+#     - npm install
+#     - export NODE_OPTIONS=--max_old_space_size=8192
+#     - rm -rf dist
+#     - nest build common
+#     - nest build cms
+#     - nest build client
+#     - ls -la
+#     - docker build -t $CI_REGISTRY_IMAGE .
+#     - docker push $CI_REGISTRY_IMAGE

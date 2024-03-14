@@ -1,0 +1,123 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2017",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "typeRoots": [
+      "./src/types",
+      "node_modules/@types"
+    ],
+    "types": [
+      "node",
+      "jest",
+      "express"
+    ],
+    "paths": {
+      "@app/core": [
+        "libs/core/src"
+      ],
+      "@app/core/*": [
+        "libs/core/src/*"
+      ],
+      "@app/helpers": [
+        "libs/helpers/src"
+      ],
+      "@app/helpers/*": [
+        "libs/helpers/src/*"
+      ],
+      "@app/database-type-orm": [
+        "libs/database-type-orm/src"
+      ],
+      "@app/database-type-orm/*": [
+        "libs/database-type-orm/src/*"
+      ],
+      "@app/config": [
+        "libs/config/src"
+      ],
+      "@app/config/*": [
+        "libs/config/src/*"
+      ],
+      "@app/error-message": [
+        "libs/error-message/src"
+      ],
+      "@app/error-message/*": [
+        "libs/error-message/src/*"
+      ],
+      "@app/cache": [
+        "libs/cache/src"
+      ],
+      "@app/cache/*": [
+        "libs/cache/src/*"
+      ],
+      "@app/jwt-authentication": [
+        "libs/jwt-authentication/src"
+      ],
+      "@app/jwt-authentication/*": [
+        "libs/jwt-authentication/src/*"
+      ],
+      "@app/log-action": [
+        "libs/log-action/src"
+      ],
+      "@app/log-action/*": [
+        "libs/log-action/src/*"
+      ],
+      "@app/send-mail": [
+        "libs/send-mail/src"
+      ],
+      "@app/send-mail/*": [
+        "libs/send-mail/src/*"
+      ],
+      "@app/queue": [
+        "libs/queue/src"
+      ],
+      "@app/queue/*": [
+        "libs/queue/src/*"
+      ],
+      "@app/template-mail": [
+        "libs/template-mail/src"
+      ],
+      "@app/template-mail/*": [
+        "libs/template-mail/src/*"
+      ],
+      "@app/s3-upload": [
+        "libs/s3-upload/src"
+      ],
+      "@app/s3-upload/*": [
+        "libs/s3-upload/src/*"
+      ],
+      "@app/authorization": [
+        "libs/authorization/src"
+      ],
+      "@app/authorization/*": [
+        "libs/authorization/src/*"
+      ],
+      "@app/database-mongodb": [
+        "libs/database-mongodb/src"
+      ],
+      "@app/database-mongodb/*": [
+        "libs/database-mongodb/src/*"
+      ],
+      "@app/message-provider": [
+        "libs/message-provider/src"
+      ],
+      "@app/message-provider/*": [
+        "libs/message-provider/src/*"
+      ]
+    }
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/client/src",
+  "monorepo": true,
+  "root": "apps/client",
+  "compilerOptions": {
+    "webpack": true,
+    "tsConfigPath": "apps/client/tsconfig.app.json",
+    "plugins": [
+      {
+        "name": "@nestjs/swagger",
+        "options": {
+          "classValidatorShim": true,
+          "introspectComments": true,
+          "dtoFileNameSuffix": [".dto.ts"]
+        }
+      }
+    ]
+  },
+  "projects": {
+    "client": {
+      "type": "application",
+      "root": "apps/client",
+      "entryFile": "main",
+      "sourceRoot": "apps/client/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/client/tsconfig.app.json"
+      }
+    },
+    "core": {
+      "type": "library",
+      "root": "libs/core",
+      "entryFile": "index",
+      "sourceRoot": "libs/core/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/core/tsconfig.lib.json"
+      }
+    },
+    "helpers": {
+      "type": "library",
+      "root": "libs/helpers",
+      "entryFile": "index",
+      "sourceRoot": "libs/helpers/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/helpers/tsconfig.lib.json"
+      }
+    },
+    "database-type-orm": {
+      "type": "library",
+      "root": "libs/database-type-orm",
+      "entryFile": "index",
+      "sourceRoot": "libs/database-type-orm/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/database-type-orm/tsconfig.lib.json"
+      }
+    },
+    "config": {
+      "type": "library",
+      "root": "libs/config",
+      "entryFile": "index",
+      "sourceRoot": "libs/config/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/config/tsconfig.lib.json"
+      }
+    },
+    "error-message": {
+      "type": "library",
+      "root": "libs/error-message",
+      "entryFile": "index",
+      "sourceRoot": "libs/error-message/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/error-message/tsconfig.lib.json"
+      }
+    },
+    "cache": {
+      "type": "library",
+      "root": "libs/cache",
+      "entryFile": "index",
+      "sourceRoot": "libs/cache/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/cache/tsconfig.lib.json"
+      }
+    },
+
+    "jwt-authentication": {
+      "type": "library",
+      "root": "libs/jwt-authentication",
+      "entryFile": "index",
+      "sourceRoot": "libs/jwt-authentication/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/jwt-authentication/tsconfig.lib.json"
+      }
+    },
+    "log-action": {
+      "type": "library",
+      "root": "libs/log-action",
+      "entryFile": "index",
+      "sourceRoot": "libs/log-action/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/log-action/tsconfig.lib.json"
+      }
+    },
+    "send-mail": {
+      "type": "library",
+      "root": "libs/send-mail",
+      "entryFile": "index",
+      "sourceRoot": "libs/send-mail/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/send-mail/tsconfig.lib.json"
+      }
+    },
+    "queue": {
+      "type": "library",
+      "root": "libs/queue",
+      "entryFile": "index",
+      "sourceRoot": "libs/queue/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/queue/tsconfig.lib.json"
+      }
+    },
+    "template-mail": {
+      "type": "library",
+      "root": "libs/template-mail",
+      "entryFile": "index",
+      "sourceRoot": "libs/template-mail/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/template-mail/tsconfig.lib.json"
+      }
+    },
+    "s3-upload": {
+      "type": "library",
+      "root": "libs/s3-upload",
+      "entryFile": "index",
+      "sourceRoot": "libs/s3-upload/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/s3-upload/tsconfig.lib.json"
+      }
+    },
+    "authorization": {
+      "type": "library",
+      "root": "libs/authorization",
+      "entryFile": "index",
+      "sourceRoot": "libs/authorization/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/authorization/tsconfig.lib.json"
+      }
+    },
+    "database-mongodb": {
+      "type": "library",
+      "root": "libs/database-mongodb",
+      "entryFile": "index",
+      "sourceRoot": "libs/database-mongodb/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/database-mongodb/tsconfig.lib.json"
+      }
+    },
+    "message-provider": {
+      "type": "library",
+      "root": "libs/message-provider",
+      "entryFile": "index",
+      "sourceRoot": "libs/message-provider/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/message-provider/tsconfig.lib.json"
+      }
+    }
+  }
+}

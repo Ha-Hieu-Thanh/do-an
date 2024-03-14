@@ -1,0 +1,13 @@
+version: '3.5'
+
+services:
+ task-manager:
+  build: .
+  container_name: task-manager
+  ports:
+   - "3000:3000"
+   - "3001:3001"
+   - "3002:3002"
+   - "30000:30000"
+   - "30010:30010"
+   - "30020:30020"
