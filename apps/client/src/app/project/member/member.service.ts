@@ -17,7 +17,6 @@ import {
   UserProjectRole,
   UserProjectStatus,
   UserStatus,
-  UserType,
 } from 'libs/constants/enum';
 import { DataSource, Repository } from 'typeorm';
 import { AddMemberProjectDto } from './dto/add-member-project.dto';
@@ -88,9 +87,8 @@ export class MemberService {
           projectId,
         })
         .select(['u.id', 'u.email', 'u.status', 'up.userId', 'up.projectId', 'up.status', 'up.role'])
-        .where('u.email = :email AND u.userType = :userTypeClient', {
+        .where('u.email = :email', {
           email: params.email,
-          userTypeClient: UserType.CLIENT,
         })
         .getOne();
 

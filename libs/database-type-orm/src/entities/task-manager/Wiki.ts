@@ -1,5 +1,14 @@
-import { WikiStatus, WikiType } from '../../../../constants/enum';
-import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { WikiStatus } from '../../../../constants/enum';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import Project from './Project';
 
 @Entity('wiki')
@@ -24,14 +33,6 @@ export class Wiki {
     default: WikiStatus.ACTIVE,
   })
   status: WikiStatus;
-
-  @Column({
-    name: 'type',
-    type: 'tinyint',
-    unsigned: true,
-    default: WikiType.PROJECT,
-  })
-  type: WikiType;
 
   @Column({
     name: 'created_by',

@@ -10,8 +10,8 @@ export class CommentDocument extends BaseDocument {
   @Prop({ required: true, type: Number })
   issueId: number;
 
-  @Prop({ required: true, type: String })
-  content: string;
+  @Prop({ type: String, index: 'text' })
+  content?: string;
 
   @Prop({ type: [String] })
   files?: string[];

@@ -17,7 +17,6 @@ export const listWikiProjectSchema: ApiResponseOptions = {
           content: 'lalalallalallall',
           projectId: 29,
           status: 1,
-          type: 2,
           createdBy: 2,
           updatedBy: null,
           createdAt: '2023-09-25T08:30:50.763Z',

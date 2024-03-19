@@ -9,7 +9,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ProjectState, ProjectStatus, ProjectType } from '../../../../constants/enum';
 import User from './User';
 import UserProject from './UserProject';
 import ProjectIssueType from './ProjectIssueType';
@@ -37,30 +36,6 @@ export default class Project {
 
   @Column({ name: 'key', type: 'varchar', unique: true })
   key: string;
-
-  @Column({
-    name: 'state',
-    type: 'tinyint',
-    unsigned: true,
-    default: ProjectState.ACTIVE,
-  })
-  state: ProjectState;
-
-  @Column({
-    name: 'status',
-    type: 'tinyint',
-    unsigned: true,
-    default: ProjectStatus.ACTIVE,
-  })
-  status: ProjectStatus;
-
-  @Column({
-    name: 'type',
-    type: 'tinyint',
-    unsigned: true,
-    default: ProjectType.COMMON,
-  })
-  type: ProjectType;
 
   @Column({
     name: 'avatar',

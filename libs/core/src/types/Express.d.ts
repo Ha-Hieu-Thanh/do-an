@@ -8,7 +8,6 @@ declare namespace Express {
       [key: string]: any;
       id: number;
       tokenType: number;
-      userType: number;
       timeStamp: number;
       iss?: string | undefined;
       sub?: string | undefined;
@@ -35,7 +34,6 @@ declare namespace Express {
   interface User {
     id: number;
     tokenType: number;
-    userType: number;
     timeStamp: number;
   }
   namespace Multer {

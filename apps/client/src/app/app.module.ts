@@ -4,7 +4,7 @@ import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { IMPORT_MODULE_COMMON, PROVIDERS_MODULE_COMMON } from 'apps/module.common';
-import { Environment, ServiceName } from 'libs/constants/enum';
+import { Environment } from 'libs/constants/enum';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';

@@ -15,7 +15,6 @@ import { WsException } from '@nestjs/websockets';
 import {
   Environment,
   ErrorCustom,
-  LanguageErrMessage,
   MailType,
   ProjectIssueCategoryStatus,
   ProjectIssueStateStatus,
@@ -39,11 +38,7 @@ interface IProjectIssueHandleById {
 @Global()
 @Injectable()
 export class UtilsService {
-  constructor(
-    private readonly configService: ConfigService,
-    // @Inject(forwardRef(() => GlobalCacheService))
-    // private globalCacheService: GlobalCacheService,
-  ) {}
+  constructor(private readonly configService: ConfigService) {}
 
   firstArray(array: any[]) {
     return array[0];
@@ -81,7 +76,6 @@ export class UtilsService {
 
     return result;
   }
-
 
   assignPaging(params: LiteralObject) {
     params.pageIndex = Number(params.pageIndex) || 1;
@@ -236,7 +230,6 @@ export class UtilsService {
 
     return img;
   }
-
 
   omitObject(object: Object, omits: string[]) {
     const objectCopy = this.deepClone(object);
@@ -667,7 +660,7 @@ export class UtilsService {
 
     const errorValue = errorObj.errorValue;
 
-    errorObj.errorMessage =  errorValue.ErrorMessage;
+    errorObj.errorMessage = errorValue.ErrorMessage;
     errorObj.errorCode = errorValue.ErrorCode;
 
     const keyOmit = ['errorValue'];
@@ -702,7 +695,6 @@ export class UtilsService {
     return { success: true, userIdCall: userIdCall, chanel, data, ...payload };
   }
 
-  
   revertKeyFromType(type: MailType) {
     const mailTypeKey = {
       [MailType.Client_Register_Account]: 'Client_Register_Account',
@@ -712,4 +704,12 @@ export class UtilsService {
     return mailTypeKey[type];
   }
 
+  getMentionedUsers(content: string | undefined) {
+    if (!content) return [];
+    // const regex = /@(\w+)/g;
+    // const mentionedUsers = content.match(regex);
+    // if (!mentionedUsers) return [];
+    // return mentionedUsers.map((item) => item.slice(1));
+    return [1];
+  }
 }

@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { ClientLoginType, CommonStatus, Gender, UserStatus, UserType } from '../../../../constants/enum';
+import { ClientLoginType, CommonStatus, Gender, UserStatus } from '../../../../constants/enum';
 import Project from './Project';
 import UserProject from './UserProject';
 import NotificationMember from './NotificationMember';
@@ -63,7 +63,6 @@ export default class User {
   @Column({ name: 'birthday', type: 'varchar', nullable: true })
   birthday: string;
 
-  @Index()
   @Column({
     name: 'email',
     type: 'varchar',
@@ -94,16 +93,6 @@ export default class User {
   })
   refreshToken: string;
 
-  @Index()
-  @Column({
-    name: 'user_type',
-    type: 'tinyint',
-    unsigned: true,
-    default: UserType.CLIENT,
-  })
-  userType: UserType;
-
-  @Index()
   @Column({
     name: 'status',
     type: 'tinyint',

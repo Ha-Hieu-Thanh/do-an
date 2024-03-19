@@ -1,21 +1,11 @@
 /* -------------------------------------------------------------------------- */
 /*                             Environment server                             */
-
-import ProjectIssueType from '@app/database-type-orm/entities/task-manager/ProjectIssueType';
-
 /* -------------------------------------------------------------------------- */
 export enum Environment {
   Development = 'development',
   Staging = 'staging',
   Production = 'production',
   Test = 'test',
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                  Database                                  */
-/* -------------------------------------------------------------------------- */
-export enum NameDatabase {
-  TEST = 'test',
 }
 
 /* -------------------------------------------------------------------------- */
@@ -183,14 +173,20 @@ export const ErrorCustom = {
     ErrorCode: 'User_Assignee_In_Project_Not_Active',
     ErrorMessage: 'User_Assignee_In_Project_Not_Active',
   },
+  Issue_Not_Invalid: {
+    ErrorCode: 'Issue_Not_Invalid',
+    ErrorMessage: 'Issue_Not_Invalid',
+  },
+  Comment_Content_Or_Files_Required: {
+    ErrorCode: 'Comment_Content_Or_Files_Required',
+    ErrorMessage: 'Comment_Content_Or_Files_Required',
+  },
+  Comment_Create_Failed: {
+    ErrorCode: 'Comment_Create_Failed',
+    ErrorMessage: 'Comment_Create_Failed',
+  },
 };
 export type ErrorValues = (typeof ErrorCustom)[keyof typeof ErrorCustom];
-export enum LanguageErrMessage {
-  VN = 1,
-  CN = 2,
-  JP = 3,
-  UK = 4,
-}
 
 /* -------------------------------------------------------------------------- */
 /*                                    Auth                                    */
@@ -201,18 +197,12 @@ export enum TokenType {
   REFRESH_TOKEN = 'REFRESH_TOKEN',
 }
 
-export enum UserType {
-  CLIENT = 2,
-}
 export enum UserStatus {
   IN_ACTIVE = 1,
   ACTIVE = 2,
   SUSPEND = 3,
   BLOCKED = 4,
   PENDING = 5,
-}
-export enum StartUrl {
-  CLIENT = 'client',
 }
 
 export enum ClientLoginType {
@@ -227,9 +217,6 @@ export enum ClientLoginType {
 /*                                    Cache                                   */
 /* -------------------------------------------------------------------------- */
 export enum TypeCacheData {
-  KEY_CACHE_CONFIG = 'KEY_CACHE_CONFIG',
-  KEY_CACHE_ERROR_MESSAGE = 'KEY_CACHE_ERROR_MESSAGE',
-  KEY_CACHE_TEMPLATE_MAIL = 'KEY_CACHE_TEMPLATE_MAIL',
   USER_INFORMATION = 'USER_INFORMATION',
   PROJECT_INFORMATION = 'PROJECT_INFORMATION',
 }
@@ -254,7 +241,6 @@ export enum ActionType {
 /* -------------------------------------------------------------------------- */
 /*                                    Queue                                   */
 /* -------------------------------------------------------------------------- */
-const NodeEnv = process.env.NODE_ENV || Environment.Development;
 export enum QueueProcessor {
   PROCESS_SEND_MAIL = `PROCESS_SEND_MAIL`,
   PUSH_NOTIFICATION = `PUSH_NOTIFICATION`,
@@ -263,12 +249,14 @@ export enum QueueProcessor {
 /* -------------------------------------------------------------------------- */
 /*                                    Noti                                    */
 /* -------------------------------------------------------------------------- */
+
 export enum NotificationType {
   WelCome_First_Login = 1,
   Invitation_To_The_Project = 2,
   Assignee_To_The_Issue = 3,
   Confirm_Invite_To_The_Project = 4,
   Reject_Invite_To_The_Project = 5,
+  YOU_ARE_MENTIONED,
 }
 export enum NotificationTitle {
   WelCome_First_Login = 'Welcome to the {appName}',
@@ -276,6 +264,7 @@ export enum NotificationTitle {
   Assignee_To_The_Issue = `{userName} changed the issue's assignee to you.`,
   Confirm_Invite_To_The_Project = `{userName} joined the project`,
   Reject_Invite_To_The_Project = `{userName} reject the project`,
+  YOU_ARE_MENTIONED = `{username} mentioned you in the comment.`,
 }
 export enum NotificationContent {
   WelCome_First_Login = `Thank you for choosing our system. If you encounter any issues, please contact us so that we can provide you with the fastest assistance possible.`,
@@ -283,6 +272,7 @@ export enum NotificationContent {
   Assignee_To_The_Issue = `{projectKey}-{issueId} {issueSubject}`,
   Confirm_Invite_To_The_Project = `{projectName} ({projectKey})`,
   Reject_Invite_To_The_Project = `{projectName} ({projectKey})`,
+  YOU_ARE_MENTIONED = `{projectKey}-{issueId} {issueSubject}: {content}`,
 }
 /* -------------------------------------------------------------------------- */
 /*                                    Mail                                    */
@@ -322,18 +312,7 @@ export enum UserCompanyStatus {
 /* -------------------------------------------------------------------------- */
 /*                                   Project                                  */
 /* -------------------------------------------------------------------------- */
-export enum ProjectState {
-  PENDING = 1,
-  ACTIVE = 2,
-  SUCCESS = 3,
-}
-export enum ProjectStatus {
-  ACTIVE = 1,
-  BLOCKED = 2,
-}
-export enum ProjectType {
-  COMMON = 1,
-}
+
 export enum UserProjectRole {
   PM = 1,
   SUB_PM = 2,
@@ -476,10 +455,6 @@ export enum WikiStatus {
   ACTIVE = 1,
   DELETE = 2,
 }
-export enum WikiType {
-  DEFAULT = 1,
-  PROJECT = 2,
-}
 
 export enum SocketEventKeys {
   PING = 'PING',
@@ -495,25 +470,22 @@ export enum SocketEventKeys {
   CONVERSATION = 'CONVERSATION',
   FETCH_MESSAGE = 'FETCH_MESSAGE',
   UPDATE_LAST_TIME_VIEW = 'UPDATE_LAST_TIME_VIEW',
+  JOIN_ISSUE_COMMENT = 'JOIN_ISSUE_COMMENT',
+  LEAVE_ISSUE_COMMENT = 'LEAVE_ISSUE_COMMENT',
+  NEW_COMMENT = 'NEW_COMMENT',
 }
-export enum ActionConversationType {
-  NEW_MESSAGE = 'NEW_MESSAGE',
-  UPDATE_LAST_TIME_VIEW = 'UPDATE_LAST_TIME_VIEW',
-}
+// export enum ActionConversationType {
+//   NEW_MESSAGE = 'NEW_MESSAGE',
+//   UPDATE_LAST_TIME_VIEW = 'UPDATE_LAST_TIME_VIEW',
+// }
 export const EmitterConstant = {
   EMIT_TO_CLIENT: 'EMIT_TO_CLIENT',
+  EMIT_TO_CLIENT_CREATE_COMMENT: 'EMIT_TO_CLIENT_CREATE_COMMENT',
 };
 export const ConversationEvent = {
   NEW_MESSAGE: 'NEW_MESSAGE', // Noti test
   NEW_NOTI: 'NEW_NOTI', // Noti test
-  NEW_CONTACT: 'NEW_CONTACT', // Noti test
 };
-
-export enum ServiceName {
-  COMMON = 'COMMON',
-  CMS = 'CMS',
-  CLIENT = 'CLIENT',
-}
 
 export enum ContactState {
   UNREAD = 1,
@@ -521,17 +493,15 @@ export enum ContactState {
   REPLY = 3,
 }
 
-export enum NotificationType {}
-
 export enum NotificationRedirectType {
   PROJECT_BOARD = 1,
   HOME = 2,
   PROJECT_SETTING_MEMBER = 3,
+  PROJECT_ISSUE = 4,
 }
 
 export enum NotificationTargetType {
-  SYSTEM = 1,
-  CLIENT = 2,
+  CLIENT = 1,
   PROJECT = 2,
 }
 export enum ReadNotification {

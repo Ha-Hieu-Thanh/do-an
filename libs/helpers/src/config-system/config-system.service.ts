@@ -1,7 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { StartUrl } from 'libs/constants/enum';
 import { configure } from 'log4js';
 
 @Injectable()
@@ -15,7 +14,6 @@ export class ConfigSystemService {
       url: string;
       email: string;
     },
-    startUrl: StartUrl,
   ) {
     const documentBuilder = new DocumentBuilder()
       .setTitle(`IT4997 - Graduation Project Documentation`)
@@ -26,7 +24,7 @@ export class ConfigSystemService {
       .build();
 
     const document = SwaggerModule.createDocument(app, documentBuilder);
-    SwaggerModule.setup(`${startUrl}/api`, app, document);
+    SwaggerModule.setup(`client/api`, app, document);
   }
 
   setUpLoggerLog4js() {

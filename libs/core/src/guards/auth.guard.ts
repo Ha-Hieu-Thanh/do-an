@@ -4,7 +4,7 @@ import { Forbidden } from '@app/core/exception';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { ProjectStatus, StartUrl, UserProjectStatus, UserStatus, UserType } from 'libs/constants/enum';
+import {  UserProjectStatus, UserStatus } from 'libs/constants/enum';
 import { IS_PUBLIC_KEY } from '../decorator/api-public.decorator';
 import { CHECK_POLICIES_KEY, PolicyHandler } from '../decorator/check-policies.decorator';
 import { IS_PROJECT_KEY } from '../decorator/api-project.decorator';
@@ -40,10 +40,6 @@ export class AuthGuardUrl implements CanActivate {
     }
     request.projectId = projectId;
 
-    if (url.startsWith(`/${StartUrl.CLIENT}`) && ![UserType.CLIENT].includes(user.userType)) {
-      throw new Forbidden('Only client can use this api');
-    }
-
     const userInfo = await this.globalCacheService.getUserInfo(user.id);
 
     if (userInfo.status !== UserStatus.ACTIVE) {
@@ -52,9 +48,6 @@ export class AuthGuardUrl implements CanActivate {
 
     if (isProject) {
       const projectInfo = await this.globalCacheService.getProjectInfo(request.projectId);
-      if (projectInfo.status === ProjectStatus.BLOCKED) {
-        throw new Forbidden(`Project is Blocked`);
-      }
       const userProject = projectInfo.userProjectByUserId[user.id];
       if (!userProject) throw new Forbidden(`User Not in project`);
       if (![UserProjectStatus.ACTIVE, UserProjectStatus.PENDING].includes(userProject.status)) {

@@ -1,5 +1,4 @@
 import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
-import { ProjectState, ProjectStatus } from 'libs/constants/enum';
 
 export class UpdateProjectDto {
   /**
@@ -31,12 +30,4 @@ export class UpdateProjectDto {
   @IsString()
   @MaxLength(255)
   avatar?: string;
-
-  /**
-   * state project
-   * @example 1
-   */
-  @IsOptional()
-  @IsEnum(ProjectState)
-  state?: ProjectState;
 }

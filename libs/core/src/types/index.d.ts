@@ -3,14 +3,7 @@ import ProjectIssueState from '@app/database-type-orm/entities/task-manager/Proj
 import ProjectIssueType from '@app/database-type-orm/entities/task-manager/ProjectIssueType';
 import ProjectVersion from '@app/database-type-orm/entities/task-manager/ProjectVersion';
 import User from '@app/database-type-orm/entities/task-manager/User';
-import {
-  ProjectState,
-  ProjectStatus,
-  UserProjectRole,
-  UserProjectStatus,
-  UserStatus,
-  UserType,
-} from 'libs/constants/enum';
+import { UserProjectRole, UserProjectStatus, UserStatus } from 'libs/constants/enum';
 
 export interface IToken {
   token: string;
@@ -19,7 +12,6 @@ export interface IToken {
 }
 export interface IPayloadToken {
   id: number;
-  userType: UserType;
   timeStamp: number;
 }
 
@@ -28,7 +20,6 @@ export interface IGetUserInfoCache {
   name: string;
   avatar?: string;
   email: string;
-  userType: UserType;
   status: UserStatus;
 }
 
@@ -40,10 +31,8 @@ export interface IUserProjectByUserId {
 }
 export interface IGetProjectInfoCache {
   id: number;
-  status: ProjectStatus;
   name: string;
   key: string;
-  state: ProjectState;
   userProjectByUserId: {
     [key: string]: IUserProjectByUserId;
   };

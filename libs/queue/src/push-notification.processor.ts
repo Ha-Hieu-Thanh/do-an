@@ -10,7 +10,6 @@ import {
   NotificationType,
   QueueProcessor,
   UserProjectRole,
-  UserType,
 } from 'libs/constants/enum';
 import { DataSource, In } from 'typeorm';
 import { IQueuePushNotification } from './queue.service';

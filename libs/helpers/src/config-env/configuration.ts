@@ -104,7 +104,6 @@ export interface IConfig {
 export interface IDataTokenForgotPassword {
   email: string;
   timeStamp: number;
-  userType: number;
   id: number;
   iat: number;
   exp: number;

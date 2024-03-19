@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app/app.module';
-import { StartUrl } from 'libs/constants/enum';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -12,6 +11,6 @@ async function bootstrap() {
   });
 
   const port = app.get(ConfigService).get<number>('portClient', 3002);
-  await SetupServerCommon(app, 'client', port, StartUrl.CLIENT);
+  await SetupServerCommon(app, port);
 }
 bootstrap();

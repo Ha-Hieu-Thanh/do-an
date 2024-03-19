@@ -15,7 +15,7 @@ export class UpdateProfileDto {
 
   /**
    * name
-   * @example  Hien
+   * @example  Nguyen van a
    */
   @IsString()
   @IsOptional()

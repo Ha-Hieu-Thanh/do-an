@@ -18,7 +18,6 @@ import {
   NotificationTitle,
   NotificationType,
   UserStatus,
-  UserType,
 } from 'libs/constants/enum';
 import * as moment from 'moment';
 import { DataSource, Repository } from 'typeorm';
@@ -53,7 +52,7 @@ export class AuthService {
   async register({ email, password }: ClientRegisterDto) {
     /* -------------------------- Check user in system -------------------------- */
     const user = await this.userRepository.findOne({
-      where: { email, userType: UserType.CLIENT },
+      where: { email },
       select: ['id', 'status'],
     });
 
@@ -99,8 +98,8 @@ export class AuthService {
 
     /* --------------------------- Validate inviteCode -------------------------- */
     const user = await this.userRepository.findOne({
-      where: { email, userType: UserType.CLIENT },
-      select: ['id', 'email', 'status', 'inviteCode', 'userType'],
+      where: { email },
+      select: ['id', 'email', 'status', 'inviteCode'],
     });
 
     if (!user || user.status !== UserStatus.PENDING) {
@@ -132,7 +131,7 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({
       where: { id: token.id },
-      select: ['id', 'userType', 'status', 'refreshToken'],
+      select: ['id', 'status', 'refreshToken'],
     });
 
     if (user?.status === UserStatus.IN_ACTIVE) {
@@ -145,7 +144,6 @@ export class AuthService {
 
     const newAccessToken = this.JwtAuthenticationService.generateAccessToken(<IPayloadToken>{
       id: token.id,
-      userType: token.userType,
       timeStamp: new Date().getTime(),
     });
 
@@ -181,9 +179,8 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: {
         email: email,
-        userType: UserType.CLIENT,
       },
-      select: ['id', 'email', 'password', 'userType', 'status', 'refreshToken'],
+      select: ['id', 'email', 'password', 'status', 'refreshToken'],
     });
 
     if (!user) {
@@ -206,7 +203,7 @@ export class AuthService {
   }
 
   async generateToken(user, params?: User): Promise<IToken> {
-    const payload: IPayloadToken = { id: user.id, userType: user.userType, timeStamp: new Date().getTime() };
+    const payload: IPayloadToken = { id: user.id, timeStamp: new Date().getTime() };
 
     const token = this.JwtAuthenticationService.generateAccessToken(payload);
 
@@ -237,9 +234,8 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: {
         id: userId,
-        userType: UserType.CLIENT,
       },
-      select: ['id', 'email', 'password', 'userType', 'status', 'refreshToken'],
+      select: ['id', 'email', 'password', 'status', 'refreshToken'],
     });
 
     if (!user) {
@@ -292,18 +288,8 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: {
         email: email,
-        userType: UserType.CLIENT,
       },
-      select: [
-        'id',
-        'email',
-        'password',
-        'userType',
-        'status',
-        'refreshToken',
-        'tokenForgotPassword',
-        'lastTimeForgotPassword',
-      ],
+      select: ['id', 'email', 'password', 'status', 'refreshToken', 'tokenForgotPassword', 'lastTimeForgotPassword'],
     });
 
     if (!user) {
@@ -324,7 +310,6 @@ export class AuthService {
     const dataForgotPassword = {
       email,
       timeStamp: new Date().getTime(),
-      userType: UserType.CLIENT,
       id: user.id,
     };
 
@@ -368,9 +353,8 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: {
         id: dataDecode.id,
-        userType: UserType.CLIENT,
       },
-      select: ['id', 'email', 'password', 'userType', 'status', 'refreshToken', 'tokenForgotPassword'],
+      select: ['id', 'email', 'password', 'status', 'refreshToken', 'tokenForgotPassword'],
     });
 
     if (!user) {

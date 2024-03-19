@@ -13,6 +13,7 @@ import { ProjectService } from './project.service';
 import { VersionModule } from './version/version.module';
 import { WikiModule } from './wiki/wiki.module';
 import { QueueModule } from '@app/queue';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { QueueModule } from '@app/queue';
     IssueModule,
     WikiModule,
     QueueModule,
+    CommentModule,
   ],
   controllers: [ProjectController],
   providers: [ProjectService],
