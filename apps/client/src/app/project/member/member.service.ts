@@ -53,7 +53,7 @@ export class MemberService {
       .where('up.projectId = :projectId', { projectId });
 
     if (query.keyword) {
-      queryBuilder.andWhere('(u.name LIKE :keyword OR u.email LIKE :keyword)', { keyword: `%${query.keyword}%` });
+      queryBuilder.andWhere('(u.name LIKE :keyword OR u.email LIKE :keyword)', { keyword: `${query.keyword}%` });
     }
     if (query.status?.length) {
       queryBuilder.andWhere('up.status IN(:status)', { status: query.status });

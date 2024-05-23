@@ -4,7 +4,7 @@ import { UserProjectRole } from 'libs/constants/enum';
 export class AddMemberProjectDto {
   /**
    * Email add
-   * @example hien.tran@amela.vn
+   * @example hieuthanh4a2@gmail.com
    */
   @IsNotEmpty()
   @IsEmail()

@@ -134,9 +134,9 @@ export class AuthService {
       select: ['id', 'status', 'refreshToken'],
     });
 
-    if (user?.status === UserStatus.IN_ACTIVE) {
-      throw new Exception(ErrorCustom.Not_Found, 'user not available');
-    }
+    // if (user?.status === UserStatus.IN_ACTIVE) {
+    //   throw new Exception(ErrorCustom.Not_Found, 'user not available');
+    // }
 
     if (user?.refreshToken !== refreshToken) {
       throw new Exception(ErrorCustom.Invalid_Input, 'refresh token to be change, login again');

@@ -22,7 +22,7 @@ export const listMembersProjectSchema: ApiResponseOptions = {
             id: 2,
             name: null,
             avatar: null,
-            email: 'hien.tran@amela.vn',
+            email: 'hieuthanh4a2@gmail.com',
           },
         },
       ],

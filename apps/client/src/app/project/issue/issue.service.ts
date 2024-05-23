@@ -242,7 +242,8 @@ export class IssueService {
             targetType: NotificationTargetType.CLIENT,
             createdBy: userId,
             redirectId: projectId,
-            redirectType: NotificationRedirectType.PROJECT_BOARD,
+            redirectType: NotificationRedirectType.PROJECT_ISSUE,
+            targetId: issueId,
             metadata: {
               userName: user.name,
               projectKey: projectInfo.key,
@@ -598,6 +599,7 @@ export class IssueService {
     });
   }
 
+  // TODO: change to get history from elasticsearch
   async listProjectIssueHistory(userId: number, query: ListProjectIssueHistoryDto, projectId: number) {
     const queryBuilder = this.issueHistoryRepository
       .createQueryBuilder('ih')

@@ -198,11 +198,9 @@ export enum TokenType {
 }
 
 export enum UserStatus {
-  IN_ACTIVE = 1,
-  ACTIVE = 2,
-  SUSPEND = 3,
-  BLOCKED = 4,
-  PENDING = 5,
+  ACTIVE = 1,
+  BLOCKED = 2,
+  PENDING = 3,
 }
 
 export enum ClientLoginType {
@@ -213,6 +211,12 @@ export enum ClientLoginType {
   TWITTER = 5,
   YAHOO = 6,
 }
+
+export enum UserRole {
+  ADMIN = 1,
+  USER = 2,
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    Cache                                   */
 /* -------------------------------------------------------------------------- */
@@ -233,9 +237,6 @@ export enum Gender {
   MALE = 1,
   FEMALE = 2,
   ALL = 3,
-}
-export enum ActionType {
-  TRANSACTION = 1,
 }
 
 /* -------------------------------------------------------------------------- */

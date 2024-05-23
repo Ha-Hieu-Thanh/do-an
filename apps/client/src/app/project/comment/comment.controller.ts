@@ -9,8 +9,9 @@ import { Request } from 'express';
 import { UserData } from '@app/core/decorator/user.decorator';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { GetListCommentDto } from './dto/get-list-comment.dto';
+import { ClientControllers } from '@app/core/decorator/controller-customer.decorator';
 
-@Controller('comment')
+@ClientControllers('comment')
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 

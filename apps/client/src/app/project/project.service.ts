@@ -154,8 +154,6 @@ export class ProjectService {
         'p.id',
         'p.name',
         'p.key',
-        'p.status',
-        'p.state',
         'p.avatar',
         'up.userId',
         'up.projectId',
@@ -164,15 +162,8 @@ export class ProjectService {
         'up.status',
       ]);
 
-
     if (query.keyword) {
       queryBuilder.andWhere('(p.name LIKE :keyword OR p.key LIKE :keyword )', { keyword: `%${query.keyword}%` });
-    }
-    if (query.state) {
-      queryBuilder.andWhere('p.state = :state', { state: query.state });
-    }
-    if (query.status) {
-      queryBuilder.andWhere('p.status = :status', { status: query.status });
     }
 
     const [results, totalItems] = await queryBuilder
@@ -234,9 +225,6 @@ export class ProjectService {
         'p.id',
         'p.name',
         'p.key',
-        'p.state',
-        'p.status',
-        'p.type',
         'p.avatar',
         'p.memberCount',
         'p.issueCount',

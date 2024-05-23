@@ -1,9 +1,5 @@
 import { Exception } from '@app/core/exception';
-import {
-  IGetProjectInfoCache,
-  IGetUserInfoCache,
-  IUserProjectByUserId,
-} from '@app/core/types';
+import { IGetProjectInfoCache, IGetUserInfoCache, IUserProjectByUserId } from '@app/core/types';
 import Project from '@app/database-type-orm/entities/task-manager/Project';
 import ProjectIssueCategory from '@app/database-type-orm/entities/task-manager/ProjectIssueCategory';
 import ProjectIssueState from '@app/database-type-orm/entities/task-manager/ProjectIssueState';
@@ -97,6 +93,15 @@ export class GlobalCacheService {
     return user as IGetUserInfoCache;
   }
 
+  async getMultiUserInfo(userIds: number[]): Promise<IGetUserInfoCache[]> {
+    const users: IGetUserInfoCache[] = [];
+    for (const userId of userIds) {
+      const user = await this.getUserInfo(userId);
+      users.push(user);
+    }
+    return users;
+  }
+
   async getProjectInfo(projectId: number): Promise<IGetProjectInfoCache> {
     const keyCache = this.createKeyCacheData(TypeCacheData.PROJECT_INFORMATION, projectId);
 
@@ -138,11 +143,8 @@ export class GlobalCacheService {
       )
       .select([
         'p.id',
-        'p.status',
         'p.name',
         'p.key',
-        'p.state',
-        'p.status',
         'up.userId',
         'up.role',
         'up.status',

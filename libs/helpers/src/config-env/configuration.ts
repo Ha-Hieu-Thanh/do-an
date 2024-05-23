@@ -27,7 +27,6 @@ export default (): {} => ({
   },
   queue: {
     prefix: process.env.QUEUE_PREFIX || '',
-    delayPurchaseNft: Number(process.env.DELAY_TIME_PURCHASE_NFT_QUEUE) || 60 * 1000 * 10,
   },
   s3Upload: {
     secretAccessKey: process.env.AWS_S3_SECRET_KEY,
@@ -47,7 +46,6 @@ export default (): {} => ({
     mongodbUri: process.env.MONGODB_URI,
   },
 });
-
 
 export interface IConfigRedis {
   host: string;
@@ -73,7 +71,6 @@ export interface IConfigNodemailer {
 
 export interface IConfigQueue {
   prefix: string;
-  delayPurchaseNft: number;
 }
 
 export interface IConfigS3Upload {

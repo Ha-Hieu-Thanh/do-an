@@ -6,6 +6,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { UserProjectRole, UserProjectStatus } from '../../../../constants/enum';
@@ -14,6 +15,9 @@ import Project from './Project';
 
 @Entity('user_project')
 export default class UserProject {
+  @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
+  id: number;
+
   @PrimaryColumn({ name: 'user_id', type: 'bigint', unsigned: true })
   userId: number;
 

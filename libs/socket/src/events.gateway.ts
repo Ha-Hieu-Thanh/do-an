@@ -4,13 +4,7 @@ import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter/dist/decorators';
 import { OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import {
-  ActionConversationType,
-  EmitterConstant,
-  Environment,
-  ErrorCustom,
-  SocketEventKeys,
-} from 'libs/constants/enum';
+import { EmitterConstant, Environment, ErrorCustom, SocketEventKeys } from 'libs/constants/enum';
 import { Namespace, Socket, Server } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { WsExceptionsFilter } from './ws-exception.filter';
@@ -134,15 +128,18 @@ export class EventsGateway {
 
   // function to handle after frontend watching the issue then call the socket -> then join the room name 'ISSUE_COMMENT_`${issueId}'
   @SubscribeMessage(SocketEventKeys.JOIN_ISSUE_COMMENT)
-  async joinIssueComment(client: Socket, body: any) {
+  async joinIssueComment(client: Socket, issueId: number) {
+    this.logger.log('HELLO');
+    console.log({ issueId });
     try {
-      const parsedBody = JSON.parse(body) as JoinLeaveIssueCommentDto;
+      // const parsedBody = JSON.parse(body) as JoinLeaveIssueCommentDto;
 
-      const issueId = parsedBody.issueId;
+      // const issueId = parsedBody.issx`ueId;
       console.log(`JOIN_ISSUE_COMMENT_${issueId}`);
       client.join(this.generateIssueCommentRoom(issueId));
       return this.utilsService.socketSuccess(SocketEventKeys.JOIN_ISSUE_COMMENT, client.data.id);
     } catch (error) {
+      this.logger.log(error);
       return this.utilsService.socketFail(SocketEventKeys.JOIN_ISSUE_COMMENT, error);
     }
   }

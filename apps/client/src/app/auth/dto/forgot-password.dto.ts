@@ -4,7 +4,7 @@ import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength, Validate } from 'c
 export class ForgotPasswordDto {
   /**
    * Email forgot password
-   * @example hien.tran@amela.vn
+   * @example hieuthanh4a2@gmail.com
    */
   @IsNotEmpty()
   @IsEmail()

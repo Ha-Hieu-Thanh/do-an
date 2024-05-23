@@ -705,11 +705,17 @@ export class UtilsService {
   }
 
   getMentionedUsers(content: string | undefined) {
-    if (!content) return [];
-    // const regex = /@(\w+)/g;
-    // const mentionedUsers = content.match(regex);
-    // if (!mentionedUsers) return [];
-    // return mentionedUsers.map((item) => item.slice(1));
-    return [1];
+    const mentionedUserIds: number[] = [];
+
+    if (content) {
+      const regex = /data-user-id="(\d+)"/g;
+      let match;
+
+      while ((match = regex.exec(content)) !== null) {
+        const userId = match[1];
+        mentionedUserIds.push(userId as number);
+      }
+    }
+    return mentionedUserIds;
   }
 }

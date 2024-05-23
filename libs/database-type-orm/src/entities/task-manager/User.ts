@@ -1,8 +1,9 @@
 import { Column, CreateDateColumn, Entity, Index, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { ClientLoginType, CommonStatus, Gender, UserStatus } from '../../../../constants/enum';
+import { ClientLoginType, CommonStatus, Gender, UserRole, UserStatus } from '../../../../constants/enum';
 import Project from './Project';
 import UserProject from './UserProject';
 import NotificationMember from './NotificationMember';
+import UserCategory from './UserCategory';
 
 @Entity('user')
 export default class User {
@@ -131,6 +132,16 @@ export default class User {
   lastTimeForgotPassword?: string | null;
 
   @Column({
+    name: 'role',
+    type: 'tinyint',
+    unsigned: true,
+    nullable: true,
+    default: UserRole.USER,
+    comment: 'Role cua user',
+  })
+  role: UserRole;
+
+  @Column({
     name: 'updated_by',
     type: 'bigint',
     unsigned: true,
@@ -153,4 +164,7 @@ export default class User {
 
   @OneToMany(() => NotificationMember, (notificationMember) => notificationMember.user)
   notificationMembers: NotificationMember[];
+
+  @OneToMany(() => UserCategory, (UserCategory) => UserCategory.user)
+  userCategories: UserCategory[];
 }

@@ -44,7 +44,7 @@ export class ClientLoginDto {
 
   /**
    * Email login
-   * @example hien.tran@amela.vn
+   * @example hieuthanh4a2@gmail.com
    */
   @ValidateIf((lcd: ClientLoginDto) => {
     return lcd.loginType === ClientLoginType.DEFAULT;

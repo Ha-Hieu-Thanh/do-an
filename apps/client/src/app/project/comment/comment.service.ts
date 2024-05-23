@@ -53,7 +53,21 @@ export class CommentService {
 
     const totalItems = await this.commentModel.countDocuments(condition);
     const comments = await this.commentModel.find(condition).sort({ _id: -1 }).skip(skip!).limit(pageSize!);
-    return this.utilsService.returnPaging(comments, totalItems, query);
+
+    // get list userId from comments
+    const userIds = comments.map((comment) => comment.userId);
+    // get list user info
+    const users = await this.globalCacheService.getMultiUserInfo(userIds);
+    // asign thumb url
+    this.utilsService.assignThumbURLVer2(users, ['avatar']);
+
+    // map user info to comment
+    const commentResult = comments.map((comment) => ({
+      ...comment.toObject(),
+      user: users.find((user) => user.id === comment.userId),
+    }));
+
+    return this.utilsService.returnPaging(commentResult, totalItems, query);
   }
 
   async createComment(issueId: number, projectId: number, userId: number, data: CreateCommentDto) {
@@ -79,24 +93,29 @@ export class CommentService {
       const mentionedUserIds = this.utilsService.getMentionedUsers(data.content);
       // push notification to people are mentioned in content
 
-      this.queueService.addNotification({
-        receiversId: mentionedUserIds,
-        type: NotificationType.YOU_ARE_MENTIONED,
-        title: NotificationTitle.YOU_ARE_MENTIONED,
-        content: NotificationContent.YOU_ARE_MENTIONED,
-        targetType: NotificationTargetType.CLIENT,
-        createdBy: userId,
-        targetId: projectId,
-        redirectType: NotificationRedirectType.PROJECT_ISSUE,
-        redirectId: projectId,
-        metadata: {
-          username: user.name,
-          issueId,
-          projectKey: project.key,
-          issueSubject: issue.subject,
-          content: comment.content,
-        },
-      });
+      if (mentionedUserIds.length > 0) {
+        // content = "<p>alo <span class=\"mention\" data-index=\"0\" data-denotation-char=\"@\" data-user-id=\"2\" data-value=\"hieuthanh4a2@gmail.com\">﻿<span contenteditable=\"false\">@hieuthanh4a2@gmail.com</span>﻿</span> </p>"
+        // regex to delete all tag, only keep html content, example -> alo @hieuthanh4a2@gmail.com
+        const content = comment.content.replace(/<[^>]*>?/gm, '');
+        this.queueService.addNotification({
+          receiversId: mentionedUserIds,
+          type: NotificationType.YOU_ARE_MENTIONED,
+          title: NotificationTitle.YOU_ARE_MENTIONED,
+          content: NotificationContent.YOU_ARE_MENTIONED,
+          targetType: NotificationTargetType.CLIENT,
+          createdBy: userId,
+          targetId: issueId,
+          redirectType: NotificationRedirectType.PROJECT_ISSUE,
+          redirectId: projectId,
+          metadata: {
+            username: user.name,
+            issueId,
+            projectKey: project.key,
+            issueSubject: issue.subject,
+            content,
+          },
+        });
+      }
     }
     // TODO: emit to the list user who are watching this issue
     this.eventEmitter.emitAsync(EmitterConstant.EMIT_TO_CLIENT_CREATE_COMMENT, issueId, comment);
