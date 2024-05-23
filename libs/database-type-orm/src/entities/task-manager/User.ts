@@ -3,7 +3,7 @@ import { ClientLoginType, CommonStatus, Gender, UserRole, UserStatus } from '../
 import Project from './Project';
 import UserProject from './UserProject';
 import NotificationMember from './NotificationMember';
-import UserCategory from './UserCategory';
+import UserCategory from './UserLeadCategory';
 
 @Entity('user')
 export default class User {
@@ -164,7 +164,4 @@ export default class User {
 
   @OneToMany(() => NotificationMember, (notificationMember) => notificationMember.user)
   notificationMembers: NotificationMember[];
-
-  @OneToMany(() => UserCategory, (UserCategory) => UserCategory.user)
-  userCategories: UserCategory[];
 }

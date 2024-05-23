@@ -5,6 +5,7 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -12,6 +13,7 @@ import {
 import { UserProjectRole, UserProjectStatus } from '../../../../constants/enum';
 import User from './User';
 import Project from './Project';
+import UserLeadCategory from './UserLeadCategory';
 
 @Entity('user_project')
 export default class UserProject {
@@ -72,4 +74,7 @@ export default class UserProject {
   @ManyToOne(() => Project, (project) => project.userProjects)
   @JoinColumn({ name: 'project_id' })
   project: Project;
+
+  @OneToMany(() => UserLeadCategory, (userLeadCategory) => userLeadCategory.userProject)
+  userLeadCategories: UserLeadCategory[];
 }
