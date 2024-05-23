@@ -180,7 +180,7 @@ export class AuthService {
       where: {
         email: email,
       },
-      select: ['id', 'email', 'password', 'status', 'refreshToken'],
+      select: ['id', 'email', 'password', 'status', 'refreshToken', 'role'],
     });
 
     if (!user) {

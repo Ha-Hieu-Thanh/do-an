@@ -1,7 +1,6 @@
 require('dotenv').config();
 import { DataSource } from 'typeorm';
 import TaskManagerDefaultEntities from './entities/task-manager/z-index';
-import { TaskManagerMigration1710240838132 } from './migrations/1710240838132-task-manager-migration';
 import migrations from './migrations';
 export const dataTaskManagerSource = new DataSource({
   type: 'mysql',
@@ -13,9 +12,7 @@ export const dataTaskManagerSource = new DataSource({
   timezone: 'Z',
   charset: 'utf8mb4',
   bigNumberStrings: false,
-  entities: [
-    ...TaskManagerDefaultEntities,
-  ],
+  entities: [...TaskManagerDefaultEntities],
   // make migrations will execute all file in folder ./migrations/ folder
   migrations,
   subscribers: [],

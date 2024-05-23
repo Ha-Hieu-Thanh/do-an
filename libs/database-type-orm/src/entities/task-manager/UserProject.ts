@@ -20,10 +20,10 @@ export default class UserProject {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id: number;
 
-  @PrimaryColumn({ name: 'user_id', type: 'bigint', unsigned: true })
+  @Column({ name: 'user_id', type: 'bigint', unsigned: true })
   userId: number;
 
-  @PrimaryColumn({ name: 'project_id', type: 'bigint', unsigned: true })
+  @Column({ name: 'project_id', type: 'bigint', unsigned: true })
   projectId: number;
 
   @Index()

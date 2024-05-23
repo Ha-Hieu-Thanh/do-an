@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn,
 import ProjectIssueCategory from './ProjectIssueCategory';
 import UserProject from './UserProject';
 
-@Entity('user_category')
+@Entity('user_lead_category')
 export default class UserLeadCategory {
   @PrimaryColumn({ name: 'user_project_id', type: 'bigint', unsigned: true })
   userProjectId: number;
