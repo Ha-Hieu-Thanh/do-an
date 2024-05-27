@@ -23,6 +23,7 @@ import { AddMemberProjectDto } from './dto/add-member-project.dto';
 import { ListMembersProjectDto } from './dto/list-project-member.dto';
 import { UpdateMemberProjectDto } from './dto/update-member-project.dto';
 import { QueueService } from '@app/queue';
+import UserLeadCategory from '@app/database-type-orm/entities/task-manager/UserLeadCategory';
 
 @Injectable()
 export class MemberService {
@@ -79,6 +80,7 @@ export class MemberService {
       const userProjectRepository = transaction.getRepository(UserProject);
       const userRepository = transaction.getRepository(User);
       const projectRepository = transaction.getRepository(Project);
+      const UserLeadCategoryRepository = transaction.getRepository(UserLeadCategory);
 
       const project = await projectRepository.findOne({ where: { id: projectId }, select: ['id', 'name'] });
       /* ------------------------------- Check email ------------------------------ */
@@ -121,6 +123,20 @@ export class MemberService {
         });
       }
 
+      const userProjectAfterUpdate = await userProjectRepository.findOne({
+        where: { userId: userByEmail.id, projectId },
+      });
+
+      if (params.role === UserProjectRole.SUB_PM && params.categoryIds && params.categoryIds.length) {
+        await UserLeadCategoryRepository.insert(
+          params.categoryIds.map((categoryId) => ({
+            categoryId,
+            userProjectId: userProjectAfterUpdate?.id,
+            createdBy: userId,
+          })),
+        );
+      }
+
       await this.globalCacheService.delByTypeKey(TypeCacheData.PROJECT_INFORMATION, projectId);
 
       this.queueService.addNotification({
@@ -146,7 +162,7 @@ export class MemberService {
 
       const userProject = await userProjectRepository.findOne({
         where: { userId: params.userId, projectId },
-        select: ['userId', 'projectId', 'role', 'status'],
+        select: ['id', 'userId', 'projectId', 'role', 'status'],
       });
 
       if (!userProject) {
@@ -169,6 +185,19 @@ export class MemberService {
           { status: params.status, updatedBy: userId, role: params.role || userProject.role },
         ),
       );
+
+      if (params.role === UserProjectRole.SUB_PM && params.categoryIds && params.categoryIds.length) {
+        task.push(() => transaction.getRepository(UserLeadCategory).delete({ userProjectId: userProject.id }));
+        task.push(() =>
+          transaction.getRepository(UserLeadCategory).insert(
+            params.categoryIds!.map((categoryId) => ({
+              categoryId,
+              userProjectId: userProject.id,
+              createdBy: userId,
+            })),
+          ),
+        );
+      }
 
       if (params.status === UserProjectStatus.IN_ACTIVE) {
         task.push(() => projectRepository.update({ id: projectId }, { memberCount: () => `member_count - 1` }));
