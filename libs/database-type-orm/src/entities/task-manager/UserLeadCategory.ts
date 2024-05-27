@@ -7,8 +7,8 @@ export default class UserLeadCategory {
   @PrimaryColumn({ name: 'user_project_id', type: 'bigint', unsigned: true })
   userProjectId: number;
 
-  @PrimaryColumn({ name: 'project_id', type: 'bigint', unsigned: true })
-  projectId: number;
+  @PrimaryColumn({ name: 'category_id', type: 'bigint', unsigned: true })
+  categoryId: number;
 
   @Column({
     name: 'created_by',

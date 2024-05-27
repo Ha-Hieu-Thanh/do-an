@@ -51,7 +51,7 @@ export class AuthorizationService {
       can(Action.Read, Subject.ProjectIssueCategory);
       can(Action.Read, Subject.ProjectIssueState);
       can(Action.Read, Subject.ProjectVersion);
-      can(Action.Read, Subject.ProjectWiki);
+      can(Action.Manage, Subject.ProjectWiki);
       can(Action.Manage, Subject.ProjectIssue);
     }
 

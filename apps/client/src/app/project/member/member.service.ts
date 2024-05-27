@@ -39,6 +39,7 @@ export class MemberService {
       .createQueryBuilder('up')
       .innerJoinAndMapOne('up.user', User, 'u', 'u.id = up.userId')
       .select([
+        'up.id',
         'up.userId',
         'up.projectId',
         'up.role',

@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, Max, Min } from 'class-validator';
+import { ArrayMinSize, IsArray, IsEnum, IsInt, IsNotEmpty, IsOptional, Max, Min, ValidateIf } from 'class-validator';
 import { UserProjectRole, UserProjectStatus } from 'libs/constants/enum';
 
 export class UpdateMemberProjectDto {
@@ -25,6 +25,20 @@ export class UpdateMemberProjectDto {
    * @example 2
    */
   @IsOptional()
-  @IsEnum([UserProjectRole.STAFF, UserProjectRole.SUB_PM])
+  @IsEnum(UserProjectRole)
   role?: UserProjectRole;
+
+  // if role is SUB_PM, then we need to add this field
+  /**
+   * categoryLeadIds
+   * @type number[]
+   * @example [1,2]
+   */
+
+  @ValidateIf((dto: UpdateMemberProjectDto) => dto.role === UserProjectRole.SUB_PM)
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  categoryIds?: number[];
 }

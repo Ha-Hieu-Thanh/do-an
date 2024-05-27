@@ -30,6 +30,7 @@ import { UpdateIssueDto } from './dto/update-issue.dto';
 import IssueHistory from '@app/database-type-orm/entities/task-manager/IssueHistory';
 import { ListProjectIssueHistoryDto } from './dto/list-project-issue-history.dto';
 import { QueueService } from '@app/queue';
+import UserLeadCategory from '@app/database-type-orm/entities/task-manager/UserLeadCategory';
 
 @Injectable()
 export class IssueService {
@@ -353,6 +354,27 @@ export class IssueService {
     if (!issueCurrent) {
       throw new Exception(ErrorCustom.Invalid_Input);
     }
+
+    // TODO: handle category by sub_pm lead ( join table )
+    const userProjectCategoryIds = await this.userProjectRepository
+      .createQueryBuilder('up')
+      .innerJoin(UserLeadCategory, 'ulc', 'ulc.userProjectId = up.id')
+      .where('up.projectId = :projectId AND up.userId = :userId AND up.status = :userProjectStatusActive', {
+        projectId,
+        userId,
+        userProjectStatusActive: UserProjectStatus.ACTIVE,
+      })
+      .select('ulc.categoryId', 'categoryId')
+      .getRawMany();
+
+    const userProjectCategoryIdsList = userProjectCategoryIds.map((item) => item.categoryId);
+    if (
+      [UserProjectRole.SUB_PM].includes(userProjectRole) &&
+      !userProjectCategoryIdsList.includes(issueCurrent.categoryId)
+    ) {
+      throw new Exception(ErrorCustom.User_Not_Permission_Update_Issue);
+    }
+
     if (
       ![UserProjectRole.PM, UserProjectRole.SUB_PM].includes(userProjectRole) &&
       issueCurrent.createdBy !== userId &&
