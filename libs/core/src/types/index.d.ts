@@ -12,6 +12,7 @@ export interface IToken {
 }
 export interface IPayloadToken {
   id: number;
+  role: number;
   timeStamp: number;
 }
 

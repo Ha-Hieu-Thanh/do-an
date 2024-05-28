@@ -35,6 +35,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { GenerateKeyDto } from './dto/generate-key.dto';
 import { GetMyProjectsDto } from './dto/get-my-projects.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import UserLeadCategory from '@app/database-type-orm/entities/task-manager/UserLeadCategory';
 
 @Injectable()
 export class ProjectService {
@@ -192,6 +193,7 @@ export class ProjectService {
       .leftJoinAndMapOne('p.userProject', UserProject, 'up', 'up.projectId = p.id AND up.userId = :userId', {
         userId,
       })
+      .leftJoinAndMapMany('up.categoryIds', UserLeadCategory, 'ulc', 'ulc.userProjectId = up.id')
       .leftJoinAndMapMany(
         'p.projectIssueTypes',
         ProjectIssueType,
@@ -247,6 +249,7 @@ export class ProjectService {
         'up.createdAt',
         'up.role',
         'up.status',
+        'ulc.categoryId',
       ])
       .orderBy('pit.order', 'DESC')
       .addOrderBy('pis.order', 'DESC')
@@ -354,6 +357,10 @@ export class ProjectService {
         ),
       });
     }
+
+    (project as any).userProject.categoryIds = (project as any).userProject.categoryIds.map(
+      (item: { categoryId: number }) => item.categoryId,
+    );
 
     this.utilsService.assignThumbURLVer2(project, ['avatar']);
 

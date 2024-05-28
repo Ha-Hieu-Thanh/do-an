@@ -15,8 +15,9 @@ import { ClientsModule } from '@nestjs/microservices';
 import Notification from '@app/database-type-orm/entities/task-manager/Notification';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import NotificationMember from '@app/database-type-orm/entities/task-manager/NotificationMember';
+import { AdminModule } from './admin/admin.module';
 
-const moduleFeatures = [AuthModule, ProjectModule, ProfileModule];
+const moduleFeatures = [AuthModule, ProjectModule, ProfileModule, AdminModule];
 @Module({
   imports: [
     ...IMPORT_MODULE_COMMON,

@@ -1,3 +1,3 @@
-import { TaskManagerMigration1716481351613 } from './1716481351613-task-manager-migration';
+import { TaskManagerMigration1716827984294 } from './1716827984294-task-manager-migration';
 
-export default [TaskManagerMigration1716481351613];
+export default [TaskManagerMigration1716827984294];

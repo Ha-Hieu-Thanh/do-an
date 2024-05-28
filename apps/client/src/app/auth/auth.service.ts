@@ -99,7 +99,7 @@ export class AuthService {
     /* --------------------------- Validate inviteCode -------------------------- */
     const user = await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'status', 'inviteCode'],
+      select: ['id', 'role', 'email', 'status', 'inviteCode'],
     });
 
     if (!user || user.status !== UserStatus.PENDING) {
@@ -203,7 +203,7 @@ export class AuthService {
   }
 
   async generateToken(user, params?: User): Promise<IToken> {
-    const payload: IPayloadToken = { id: user.id, timeStamp: new Date().getTime() };
+    const payload: IPayloadToken = { id: user.id, role: user.role, timeStamp: new Date().getTime() };
 
     const token = this.JwtAuthenticationService.generateAccessToken(payload);
 
