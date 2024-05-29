@@ -74,6 +74,7 @@ export class AuthService {
       const hashPassword = await bcrypt.hash(password, configAuth?.saltRound);
 
       const newUser = await userRepository.save(<User>{
+        name: email,
         email,
         password: hashPassword,
         status: UserStatus.PENDING,

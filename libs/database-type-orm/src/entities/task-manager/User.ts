@@ -14,7 +14,7 @@ export default class User {
     name: 'login_type',
     type: 'tinyint',
     unsigned: true,
-    nullable: true,
+    default: ClientLoginType.DEFAULT,
     comment: 'Type dang nhap cua ben thu ba eg. fb, yahoo...',
   })
   loginType: ClientLoginType;

@@ -39,6 +39,7 @@ export class MemberService {
     const queryBuilder = this.userProjectRepository
       .createQueryBuilder('up')
       .innerJoinAndMapOne('up.user', User, 'u', 'u.id = up.userId')
+      .leftJoinAndMapMany('u.category', UserLeadCategory, 'ulc', 'ulc.userProjectId = up.id')
       .select([
         'up.id',
         'up.userId',
@@ -51,6 +52,7 @@ export class MemberService {
         'u.name',
         'u.avatar',
         'u.email',
+        'ulc.categoryId',
       ])
       .where('up.projectId = :projectId', { projectId });
 
@@ -69,6 +71,11 @@ export class MemberService {
       .skip(query.skip)
       .take(query.pageSize)
       .getManyAndCount();
+
+    results.forEach((userProject) => {
+      (userProject.user as any).categoryIds = (userProject.user as any).category.map((item) => item.categoryId);
+      delete (userProject.user as any).category;
+    });
 
     this.utilsService.assignThumbURLVer2(results, ['user', 'avatar']);
 
