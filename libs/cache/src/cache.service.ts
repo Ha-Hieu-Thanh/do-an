@@ -80,7 +80,7 @@ export class GlobalCacheService {
 
     const user = (await this.userRepository
       .createQueryBuilder('u')
-      .select(['u.id', 'u.name', 'u.avatar', 'u.email', 'u.status'])
+      .select(['u.id', 'u.name', 'u.avatar', 'u.email', 'u.status', 'u.role'])
       .where('u.id = :userId', { userId })
       .getOne()) as IGetUserInfoCache;
 

@@ -4,10 +4,11 @@ import { Forbidden } from '@app/core/exception';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import {  UserProjectStatus, UserStatus } from 'libs/constants/enum';
+import { UserProjectStatus, UserRole, UserStatus } from 'libs/constants/enum';
 import { IS_PUBLIC_KEY } from '../decorator/api-public.decorator';
 import { CHECK_POLICIES_KEY, PolicyHandler } from '../decorator/check-policies.decorator';
 import { IS_PROJECT_KEY } from '../decorator/api-project.decorator';
+import { IS_ADMIN_KEY } from '../decorator/api-admin.decorator';
 
 @Injectable()
 export class AuthGuardUrl implements CanActivate {
@@ -46,7 +47,17 @@ export class AuthGuardUrl implements CanActivate {
       throw new Forbidden(`User Blocked`);
     }
 
+    const isAdmin = this.reflector.getAllAndOverride<boolean>(IS_ADMIN_KEY, [context.getHandler(), context.getClass()]);
+    if (isAdmin) {
+      if (userInfo.role !== UserRole.ADMIN) {
+        throw new Forbidden(`User Not permission`);
+      }
+      return true;
+    }
+
     if (isProject) {
+      if (userInfo.role === UserRole.ADMIN) return true;
+
       const projectInfo = await this.globalCacheService.getProjectInfo(request.projectId);
       const userProject = projectInfo.userProjectByUserId[user.id];
       if (!userProject) throw new Forbidden(`User Not in project`);

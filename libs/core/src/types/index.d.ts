@@ -3,7 +3,7 @@ import ProjectIssueState from '@app/database-type-orm/entities/task-manager/Proj
 import ProjectIssueType from '@app/database-type-orm/entities/task-manager/ProjectIssueType';
 import ProjectVersion from '@app/database-type-orm/entities/task-manager/ProjectVersion';
 import User from '@app/database-type-orm/entities/task-manager/User';
-import { UserProjectRole, UserProjectStatus, UserStatus } from 'libs/constants/enum';
+import { UserProjectRole, UserProjectStatus, UserRole, UserStatus } from 'libs/constants/enum';
 
 export interface IToken {
   token: string;
@@ -22,6 +22,7 @@ export interface IGetUserInfoCache {
   avatar?: string;
   email: string;
   status: UserStatus;
+  role: UserRole;
 }
 
 export interface IUserProjectByUserId {

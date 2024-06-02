@@ -7,10 +7,10 @@ import { ErrorCustom } from 'libs/constants/enum';
 import { ConfigSystemService } from '../config-system/config-system.service';
 import { LoggingService } from '../logging/logging.service';
 import { IConfig, IConfigRedis } from './configuration';
-// import { RedisIoAdapter } from 'libs/socket/src/ioredis-io.adapter';
 import { Exception } from '@app/core/exception';
 import { MicroserviceOptions } from '@nestjs/microservices';
 import { Transport } from '@nestjs/microservices/enums';
+import { RedisIoAdapter } from 'libs/socket/src/ioredis-io.adapter';
 
 export async function SetupServerCommon(app: NestExpressApplication, port: number) {
   const configService: ConfigService<IConfig> = app.get(ConfigService);
@@ -37,9 +37,12 @@ export async function SetupServerCommon(app: NestExpressApplication, port: numbe
     }),
   );
 
-  // const redisIoAdapter = new RedisIoAdapter(app);
-  // await redisIoAdapter.connectToRedis(redisConfig);
-  // app.useWebSocketAdapter(redisIoAdapter);
+  // use redis as a adapter
+  const redisIoAdapter = new RedisIoAdapter(app);
+  await redisIoAdapter.connectToRedis(redisConfig);
+  app.useWebSocketAdapter(redisIoAdapter);
+
+  app.startAllMicroservices();
 
   await app.listen(port, () => {
     logger.log(`=== task manager running on port: ${port}. pid: ${process.pid} ===`);
