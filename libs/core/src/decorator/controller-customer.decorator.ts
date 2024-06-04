@@ -4,7 +4,16 @@ import { ApiTags } from '@nestjs/swagger';
 export const ClientControllers =
   (controllerName?: string): ClassDecorator =>
   (target: any) => {
-    const url = `client/${controllerName || ''}`;
+    const url = `/${controllerName || ''}`;
+
+    ApiTags(url)(target);
+    Controller(url)(target);
+  };
+
+export const AdminControllers =
+  (controllerName?: string): ClassDecorator =>
+  (target: any) => {
+    const url = `/admin/${controllerName || ''}`;
 
     ApiTags(url)(target);
     Controller(url)(target);

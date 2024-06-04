@@ -21,6 +21,11 @@ export class AppService {
     @InjectRepository(NotificationMember) private readonly notificationMemberRepository: Repository<NotificationMember>,
   ) {}
 
+  async clearCache() {
+    await this.globalCacheService.resetCache();
+    return true;
+  }
+
   async healthCheck(ip: string) {
     return ip;
   }

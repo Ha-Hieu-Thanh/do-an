@@ -24,7 +24,7 @@ export class ConfigSystemService {
       .build();
 
     const document = SwaggerModule.createDocument(app, documentBuilder);
-    SwaggerModule.setup(`client/api`, app, document);
+    SwaggerModule.setup(`/api`, app, document);
   }
 
   setUpLoggerLog4js() {

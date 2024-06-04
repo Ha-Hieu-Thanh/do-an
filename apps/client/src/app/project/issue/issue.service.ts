@@ -17,6 +17,7 @@ import {
   NotificationType,
   UserProjectRole,
   UserProjectStatus,
+  UserRole,
 } from 'libs/constants/enum';
 import UserProject from '@app/database-type-orm/entities/task-manager/UserProject';
 import ProjectIssueCategory from '@app/database-type-orm/entities/task-manager/ProjectIssueCategory';
@@ -355,40 +356,44 @@ export class IssueService {
       throw new Exception(ErrorCustom.Invalid_Input);
     }
 
+    const user = await this.globalCacheService.getUserInfo(userId);
     // TODO: handle category by sub_pm lead ( join table )
-    const userProjectCategoryIds = await this.userProjectRepository
-      .createQueryBuilder('up')
-      .innerJoin(UserLeadCategory, 'ulc', 'ulc.userProjectId = up.id')
-      .where('up.projectId = :projectId AND up.userId = :userId AND up.status = :userProjectStatusActive', {
-        projectId,
-        userId,
-        userProjectStatusActive: UserProjectStatus.ACTIVE,
-      })
-      .select('ulc.categoryId', 'categoryId')
-      .getRawMany();
 
-    const userProjectCategoryIdsList = userProjectCategoryIds.map((item) => item.categoryId);
-    if (
-      [UserProjectRole.SUB_PM].includes(userProjectRole) &&
-      !userProjectCategoryIdsList.includes(issueCurrent.categoryId)
-    ) {
+    let userProjectCategoryIds;
+    let userProjectCategoryIdsList;
+
+    if (UserRole.USER === user?.role) {
+      userProjectCategoryIds = await this.userProjectRepository
+        .createQueryBuilder('up')
+        .innerJoin(UserLeadCategory, 'ulc', 'ulc.userProjectId = up.id')
+        .where('up.projectId = :projectId AND up.userId = :userId AND up.status = :userProjectStatusActive', {
+          projectId,
+          userId,
+          userProjectStatusActive: UserProjectStatus.ACTIVE,
+        })
+        .select('ulc.categoryId', 'categoryId')
+        .getRawMany();
+
+      userProjectCategoryIdsList = userProjectCategoryIds.map((item) => item.categoryId);
+    }
+    const isPermission =
+      [UserRole.ADMIN].includes(user?.role) ||
+      ([UserProjectRole.SUB_PM].includes(userProjectRole) &&
+        userProjectCategoryIdsList.includes(issueCurrent.categoryId)) ||
+      [UserProjectRole.PM].includes(userProjectRole) ||
+      issueCurrent.createdBy === userId ||
+      issueCurrent.assigneeId === userId;
+
+    if (!isPermission) {
       throw new Exception(ErrorCustom.User_Not_Permission_Update_Issue);
     }
 
-    if (
-      ![UserProjectRole.PM, UserProjectRole.SUB_PM].includes(userProjectRole) &&
-      issueCurrent.createdBy !== userId &&
-      issueCurrent.assigneeId !== userId
-    ) {
-      throw new Exception(ErrorCustom.User_Not_Permission_Update_Issue);
-    }
     const projectInfo = await this.validateDataIdCoreIssue(projectId, {
       assigneeId: params.assigneeId,
       categoryId: params.categoryId,
       versionId: params.versionId,
       typeId: params.typeId,
     });
-    const user = await this.globalCacheService.getUserInfo(userId);
 
     return await this.dataSource.transaction(async (transaction) => {
       const { issuePostId, ...data } = params;
@@ -626,16 +631,16 @@ export class IssueService {
     const queryBuilder = this.issueHistoryRepository
       .createQueryBuilder('ih')
       .innerJoinAndMapOne('ih.created', User, 'u', 'u.id = ih.createdBy')
-      .innerJoinAndMapOne(
-        'ih.userProject',
-        UserProject,
-        'up',
-        'up.projectId = ih.projectId AND up.userId = :userId AND up.status = :userProjectStatusActive',
-        {
-          userId,
-          userProjectStatusActive: UserProjectStatus.ACTIVE,
-        },
-      )
+      // .innerJoinAndMapOne(
+      //   'ih.userProject',
+      //   UserProject,
+      //   'up',
+      //   'up.projectId = ih.projectId AND up.userId = :userId AND up.status = :userProjectStatusActive',
+      //   {
+      //     userId,
+      //     userProjectStatusActive: UserProjectStatus.ACTIVE,
+      //   },
+      // )
       .innerJoinAndMapOne('ih.project', Project, 'p', 'p.id = ih.projectId')
       .select([
         'ih.id',

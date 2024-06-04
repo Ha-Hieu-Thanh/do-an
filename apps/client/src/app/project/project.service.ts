@@ -27,6 +27,7 @@ import {
   TypeCacheData,
   UserProjectRole,
   UserProjectStatus,
+  UserRole,
 } from 'libs/constants/enum';
 import * as moment from 'moment';
 import { DataSource, Not, Repository } from 'typeorm';
@@ -184,78 +185,142 @@ export class ProjectService {
       select: ['userId', 'projectId', 'role'],
     });
 
-    if (!userProject) {
+    const user = await this.globalCacheService.getUserInfo(userId);
+
+    if (user.role === UserRole.USER && !userProject) {
       throw new Exception(ErrorCustom.User_Not_In_Project);
     }
+    let project;
 
-    const project = await this.projectRepository
-      .createQueryBuilder('p')
-      .leftJoinAndMapOne('p.userProject', UserProject, 'up', 'up.projectId = p.id AND up.userId = :userId', {
-        userId,
-      })
-      .leftJoinAndMapMany('up.categoryIds', UserLeadCategory, 'ulc', 'ulc.userProjectId = up.id')
-      .leftJoinAndMapMany(
-        'p.projectIssueTypes',
-        ProjectIssueType,
-        'pit',
-        'pit.projectId = p.id AND pit.status = :projectIssueTypeStatusActive',
-        { projectIssueTypeStatusActive: ProjectIssueTypeStatus.ACTIVE },
-      )
-      .leftJoinAndMapMany(
-        'p.projectIssueStates',
-        ProjectIssueState,
-        'pis',
-        'pis.projectId = p.id AND pis.status = :projectIssueStateStatusActive',
-        { projectIssueStateStatusActive: ProjectIssueStateStatus.ACTIVE },
-      )
-      .leftJoinAndMapMany(
-        'p.projectIssueCategories',
-        ProjectIssueCategory,
-        'pic',
-        'pic.projectId = p.id AND pic.status = :projectIssueCategoryStatusActive',
-        { projectIssueCategoryStatusActive: ProjectIssueCategoryStatus.ACTIVE },
-      )
-      .leftJoinAndMapMany(
-        'p.projectVersions',
-        ProjectVersion,
-        'pv',
-        'pv.projectId = p.id AND pv.status = :projectVersionStatusActive',
-        { projectVersionStatusActive: ProjectVersionStatus.ACTIVE },
-      )
-      .where('p.id = :projectId', { projectId })
-      .select([
-        'p.id',
-        'p.name',
-        'p.key',
-        'p.avatar',
-        'p.memberCount',
-        'p.issueCount',
-        'pit.id',
-        'pit.name',
-        'pit.backgroundColor',
-        'pit.issueCount',
-        'pis.id',
-        'pis.name',
-        'pis.backgroundColor',
-        'pis.issueCount',
-        'pic.id',
-        'pic.name',
-        'pic.issueCount',
-        'pv.id',
-        'pv.name',
-        'pv.issueCount',
-        'up.userId',
-        'up.projectId',
-        'up.createdAt',
-        'up.role',
-        'up.status',
-        'ulc.categoryId',
-      ])
-      .orderBy('pit.order', 'DESC')
-      .addOrderBy('pis.order', 'DESC')
-      .addOrderBy('pic.order', 'DESC')
-      .addOrderBy('pv.order', 'DESC')
-      .getOne();
+    if (user.role === UserRole.ADMIN) {
+      project = await this.projectRepository
+        .createQueryBuilder('p')
+        .leftJoinAndMapMany(
+          'p.projectIssueTypes',
+          ProjectIssueType,
+          'pit',
+          'pit.projectId = p.id AND pit.status = :projectIssueTypeStatusActive',
+          { projectIssueTypeStatusActive: ProjectIssueTypeStatus.ACTIVE },
+        )
+        .leftJoinAndMapMany(
+          'p.projectIssueStates',
+          ProjectIssueState,
+          'pis',
+          'pis.projectId = p.id AND pis.status = :projectIssueStateStatusActive',
+          { projectIssueStateStatusActive: ProjectIssueStateStatus.ACTIVE },
+        )
+        .leftJoinAndMapMany(
+          'p.projectIssueCategories',
+          ProjectIssueCategory,
+          'pic',
+          'pic.projectId = p.id AND pic.status = :projectIssueCategoryStatusActive',
+          { projectIssueCategoryStatusActive: ProjectIssueCategoryStatus.ACTIVE },
+        )
+        .leftJoinAndMapMany(
+          'p.projectVersions',
+          ProjectVersion,
+          'pv',
+          'pv.projectId = p.id AND pv.status = :projectVersionStatusActive',
+          { projectVersionStatusActive: ProjectVersionStatus.ACTIVE },
+        )
+        .where('p.id = :projectId', { projectId })
+        .select([
+          'p.id',
+          'p.name',
+          'p.key',
+          'p.avatar',
+          'p.memberCount',
+          'p.issueCount',
+          'pit.id',
+          'pit.name',
+          'pit.backgroundColor',
+          'pit.issueCount',
+          'pis.id',
+          'pis.name',
+          'pis.backgroundColor',
+          'pis.issueCount',
+          'pic.id',
+          'pic.name',
+          'pic.issueCount',
+          'pv.id',
+          'pv.name',
+          'pv.issueCount',
+        ])
+        .orderBy('pit.order', 'DESC')
+        .addOrderBy('pis.order', 'DESC')
+        .addOrderBy('pic.order', 'DESC')
+        .addOrderBy('pv.order', 'DESC')
+        .getOne();
+    } else {
+      project = await this.projectRepository
+        .createQueryBuilder('p')
+        .leftJoinAndMapOne('p.userProject', UserProject, 'up', 'up.projectId = p.id AND up.userId = :userId', {
+          userId,
+        })
+        .leftJoinAndMapMany('up.categoryIds', UserLeadCategory, 'ulc', 'ulc.userProjectId = up.id')
+        .leftJoinAndMapMany(
+          'p.projectIssueTypes',
+          ProjectIssueType,
+          'pit',
+          'pit.projectId = p.id AND pit.status = :projectIssueTypeStatusActive',
+          { projectIssueTypeStatusActive: ProjectIssueTypeStatus.ACTIVE },
+        )
+        .leftJoinAndMapMany(
+          'p.projectIssueStates',
+          ProjectIssueState,
+          'pis',
+          'pis.projectId = p.id AND pis.status = :projectIssueStateStatusActive',
+          { projectIssueStateStatusActive: ProjectIssueStateStatus.ACTIVE },
+        )
+        .leftJoinAndMapMany(
+          'p.projectIssueCategories',
+          ProjectIssueCategory,
+          'pic',
+          'pic.projectId = p.id AND pic.status = :projectIssueCategoryStatusActive',
+          { projectIssueCategoryStatusActive: ProjectIssueCategoryStatus.ACTIVE },
+        )
+        .leftJoinAndMapMany(
+          'p.projectVersions',
+          ProjectVersion,
+          'pv',
+          'pv.projectId = p.id AND pv.status = :projectVersionStatusActive',
+          { projectVersionStatusActive: ProjectVersionStatus.ACTIVE },
+        )
+        .where('p.id = :projectId', { projectId })
+        .select([
+          'p.id',
+          'p.name',
+          'p.key',
+          'p.avatar',
+          'p.memberCount',
+          'p.issueCount',
+          'pit.id',
+          'pit.name',
+          'pit.backgroundColor',
+          'pit.issueCount',
+          'pis.id',
+          'pis.name',
+          'pis.backgroundColor',
+          'pis.issueCount',
+          'pic.id',
+          'pic.name',
+          'pic.issueCount',
+          'pv.id',
+          'pv.name',
+          'pv.issueCount',
+          'up.userId',
+          'up.projectId',
+          'up.createdAt',
+          'up.role',
+          'up.status',
+          'ulc.categoryId',
+        ])
+        .orderBy('pit.order', 'DESC')
+        .addOrderBy('pis.order', 'DESC')
+        .addOrderBy('pic.order', 'DESC')
+        .addOrderBy('pv.order', 'DESC')
+        .getOne();
+    }
 
     const totalIssueCategoriesByState = await this.dataSource.query(
       `
@@ -358,9 +423,10 @@ export class ProjectService {
       });
     }
 
-    (project as any).userProject.categoryIds = (project as any).userProject.categoryIds.map(
-      (item: { categoryId: number }) => item.categoryId,
-    );
+    if (user.role === UserRole.USER)
+      (project as any).userProject.categoryIds = (project as any).userProject.categoryIds.map(
+        (item: { categoryId: number }) => item.categoryId,
+      );
 
     this.utilsService.assignThumbURLVer2(project, ['avatar']);
 

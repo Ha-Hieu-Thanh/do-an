@@ -71,6 +71,10 @@ export class GlobalCacheService {
     return await this.del(keyCache);
   }
 
+  async resetCache() {
+    return await this.cacheManager.reset();
+  }
+
   async getUserInfo(userId: number): Promise<IGetUserInfoCache> {
     const keyCache = this.createKeyCacheData(TypeCacheData.USER_INFORMATION, userId);
 

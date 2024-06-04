@@ -17,16 +17,7 @@ export class ProfileService {
   async myProfile(userId: number) {
     const user = await this.userRepository
       .createQueryBuilder('u')
-      .select([
-        'u.id',
-        'u.name',
-        'u.avatar',
-        'u.gender',
-        'u.address',
-        'u.birthday',
-        'u.email',
-        'u.phone',
-      ])
+      .select(['u.id', 'u.name', 'u.avatar', 'u.gender', 'u.address', 'u.birthday', 'u.email', 'u.phone', 'u.role'])
       .where('u.id = :userId', { userId })
       .getOne();
 
@@ -36,7 +27,7 @@ export class ProfileService {
   }
 
   async updateProfile(userId: number, params: UpdateProfileDto) {
-    await this.userRepository.update({ id: userId }, { ...params });
+    await this.userRepository.update({ id: userId }, { ...params, updatedBy: userId });
     await this.globalCacheService.delByTypeKey(TypeCacheData.USER_INFORMATION, userId);
     return true;
   }

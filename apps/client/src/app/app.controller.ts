@@ -71,4 +71,10 @@ export class AppController {
   async readNotification(@UserData() user: Express.User, @Body() body: ReadNotificationsDto) {
     return this.appService.readNotifications(user.id, body);
   }
+
+  @Get('clear-cache')
+  @Public()
+  async clearCache() {
+    return this.appService.clearCache();
+  }
 }
