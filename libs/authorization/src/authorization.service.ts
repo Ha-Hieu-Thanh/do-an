@@ -40,8 +40,19 @@ export class AuthorizationService {
   createAbilityForProject(userProject: IUserProjectByUserId) {
     const { can, cannot, build } = new AbilityBuilder<AbilityProject>(createMongoAbility);
 
-    if ([UserProjectRole.PM, UserProjectRole.SUB_PM].includes(userProject.role)) {
+    if ([UserProjectRole.PM].includes(userProject.role)) {
       can(Action.Manage, Subject.All);
+    }
+
+    if ([UserProjectRole.SUB_PM].includes(userProject.role)) {
+      can(Action.Read, Subject.Project);
+      can(Action.Read, Subject.ProjectMember);
+      can(Action.Read, Subject.ProjectIssueType);
+      can(Action.Read, Subject.ProjectIssueCategory);
+      can(Action.Read, Subject.ProjectIssueState);
+      can(Action.Read, Subject.ProjectVersion);
+      can(Action.Manage, Subject.ProjectWiki);
+      can(Action.Manage, Subject.ProjectIssue);
     }
 
     if (UserProjectRole.STAFF === userProject.role) {

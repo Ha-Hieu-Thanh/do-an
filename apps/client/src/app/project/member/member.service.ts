@@ -194,16 +194,16 @@ export class MemberService {
       );
 
       if (params.role === UserProjectRole.SUB_PM && params.categoryIds && params.categoryIds.length) {
-        task.push(() => transaction.getRepository(UserLeadCategory).delete({ userProjectId: userProject.id }));
-        task.push(() =>
-          transaction.getRepository(UserLeadCategory).insert(
+        task.push(async () => {
+          await transaction.getRepository(UserLeadCategory).delete({ userProjectId: userProject.id });
+          await transaction.getRepository(UserLeadCategory).insert(
             params.categoryIds!.map((categoryId) => ({
               categoryId,
               userProjectId: userProject.id,
               createdBy: userId,
             })),
-          ),
-        );
+          );
+        });
       }
 
       if (params.status === UserProjectStatus.IN_ACTIVE) {
