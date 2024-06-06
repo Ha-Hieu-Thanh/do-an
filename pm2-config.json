@@ -1,21 +1,9 @@
 {
   "apps": [
     {
-      "name": "common",
-      "script": "dist/apps/common/main.js",
-      "instances": 2,
-      "max_memory_restart": "3000M"
-    },
-    {
-      "name": "cms",
-      "script": "dist/apps/cms/main.js",
-      "instances": 2,
-      "max_memory_restart": "3000M"
-    },
-    {
       "name": "client",
       "script": "dist/apps/client/main.js",
-      "instances": 2,
+      "instances": 1,
       "max_memory_restart": "3000M"
     }
   ]
