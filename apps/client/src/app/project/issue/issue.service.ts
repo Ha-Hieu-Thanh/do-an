@@ -115,10 +115,13 @@ export class IssueService {
     if (query.versionId) {
       queryBuilder.andWhere('i.versionId = :versionId', { versionId: query.versionId });
     }
+    if (query.sortField) {
+      queryBuilder.orderBy(`i.${query.sortField}`, 'DESC');
+    }
     if (query.isGetAll) {
-      queryBuilder.orderBy('i.id', 'DESC');
+      queryBuilder.addOrderBy('i.id', 'DESC');
     } else {
-      queryBuilder.orderBy('i.order', 'DESC');
+      queryBuilder.addOrderBy('i.order', 'DESC');
     }
     if (query.isCreated) {
       queryBuilder.andWhere('i.createdBy = :userId', { userId });

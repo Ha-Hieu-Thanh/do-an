@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { PageSizeDto } from 'libs/constants/pagination';
 
 export class ListProjectIssueDto extends PageSizeDto {
@@ -76,4 +76,13 @@ export class ListProjectIssueDto extends PageSizeDto {
   @Transform(({ value }) => (value === 'true' ? true : false))
   @IsBoolean()
   isCreated?: boolean;
+
+  /**
+   * sortField
+   * @param {string}
+   * @example version_id
+   */
+  @IsOptional()
+  @IsString()
+  sortField?: string;
 }
