@@ -32,6 +32,7 @@ import IssueHistory from '@app/database-type-orm/entities/task-manager/IssueHist
 import { ListProjectIssueHistoryDto } from './dto/list-project-issue-history.dto';
 import { QueueService } from '@app/queue';
 import UserLeadCategory from '@app/database-type-orm/entities/task-manager/UserLeadCategory';
+import { SchedulerRegistry } from '@nestjs/schedule';
 
 @Injectable()
 export class IssueService {
@@ -44,6 +45,7 @@ export class IssueService {
     private readonly dataSource: DataSource,
     private readonly globalCacheService: GlobalCacheService,
     private readonly queueService: QueueService,
+    private readonly schedulerRegistry: SchedulerRegistry,
   ) {}
 
   async listProjectIssue(userId: number, query: ListProjectIssueDto, projectId: number) {
@@ -182,6 +184,7 @@ export class IssueService {
       versionId: params.versionId,
       typeId: params.typeId,
     });
+
     const user = await this.globalCacheService.getUserInfo(userId);
 
     return await this.dataSource.transaction(async (transaction) => {
@@ -261,6 +264,78 @@ export class IssueService {
 
       await Promise.all(task.map((item) => item()));
 
+      if (params.dueDate) {
+        const deadlineTime = new Date(params.dueDate).getTime();
+        const timeNow = new Date().getTime();
+        const issue = await issueRepository.findOne({
+          where: { id: issueId, status: IssueStatus.ACTIVE, projectId },
+          select: ['id', 'status', 'dueDate', 'assigneeId'],
+        });
+
+        if (!issue) return;
+        // for each key of projectInfo.userProjectByUserId, check if role is PM , then add to listPMIds
+        const listPMAndSubPMIds = Object.keys(projectInfo.userProjectByUserId)
+          .filter((key) => [UserProjectRole.PM].includes(projectInfo.userProjectByUserId[key].role))
+          .map(Number);
+
+        if (params.categoryId) {
+          const listSubPMLeadCategory = (await transaction
+            .createQueryBuilder(UserLeadCategory, 'ulc')
+            .innerJoin(UserProject, 'up', 'ulc.userProjectId = up.id')
+            .where('ulc.categoryId = :categoryId', { categoryId: params.categoryId })
+            .select('up.userId')
+            .getRawMany()) as number[];
+
+          listPMAndSubPMIds.push(...listSubPMLeadCategory);
+        }
+
+        if (deadlineTime - timeNow - 1000 * 60 * 10 >= 0) {
+          const timeout = setTimeout(async () => {
+            this.queueService.addNotification({
+              receiversId: [issue.assigneeId],
+              type: NotificationType.Task_Deadline,
+              title: NotificationTitle.Task_Deadline,
+              content: NotificationContent.Task_Deadline,
+              targetType: NotificationTargetType.CLIENT,
+              createdBy: userId,
+              targetId: issueId,
+              redirectType: NotificationRedirectType.PROJECT_ISSUE,
+              redirectId: projectId,
+              metadata: {
+                userName: user.name,
+                projectKey: projectInfo.key,
+                issueId,
+                issueSubject: params.subject,
+              },
+            });
+          }, deadlineTime - timeNow - 1000 * 60 * 10);
+          this.schedulerRegistry.addTimeout(`issue_${issueId}`, timeout);
+        }
+        const assignee = await this.globalCacheService.getUserInfo(issue.assigneeId);
+
+        const timeoutOnTime = setTimeout(async () => {
+          this.queueService.addNotification({
+            // delete duplication ids
+            receiversId: [...new Set([issue.assigneeId, ...listPMAndSubPMIds])],
+            type: NotificationType.Task_Deadline,
+            title: NotificationTitle.Task_Deadline_On_Time,
+            content: NotificationContent.Task_Deadline_On_Time,
+            targetType: NotificationTargetType.CLIENT,
+            createdBy: userId,
+            targetId: issueId,
+            redirectType: NotificationRedirectType.PROJECT_ISSUE,
+            redirectId: projectId,
+            metadata: {
+              userName: assignee.name,
+              projectKey: projectInfo.key,
+              issueId,
+              issueSubject: params.subject,
+            },
+          });
+        }, deadlineTime - timeNow);
+
+        this.schedulerRegistry.addTimeout(`issue_on_time_${issueId}`, timeoutOnTime);
+      }
       return true;
     });
   }
@@ -625,6 +700,85 @@ export class IssueService {
       });
 
       await Promise.all(task.map((item) => item()));
+
+      // clear old time out and set new time out
+      if (params.dueDate) {
+        const deadlineTime = new Date(params.dueDate).getTime();
+        const timeNow = new Date().getTime();
+        const issue = await issueRepository.findOne({
+          where: { id: issueId, status: IssueStatus.ACTIVE, projectId },
+          select: ['id', 'status', 'dueDate', 'assigneeId'],
+        });
+
+        if (!issue) return;
+        const listPMAndSubPMIds = Object.keys(projectInfo.userProjectByUserId)
+          .filter((key) => [UserProjectRole.PM].includes(projectInfo.userProjectByUserId[key].role))
+          .map(Number);
+
+        if (params.categoryId) {
+          const listSubPMLeadCategory = (await transaction
+            .createQueryBuilder(UserLeadCategory, 'ulc')
+            .innerJoin(UserProject, 'up', 'ulc.userProjectId = up.id')
+            .where('ulc.categoryId = :categoryId', { categoryId: params.categoryId })
+            .select('up.userId')
+            .getRawMany()) as number[];
+
+          listPMAndSubPMIds.push(...listSubPMLeadCategory);
+        }
+
+        if (deadlineTime - timeNow - 1000 * 60 * 10 >= 0) {
+          const timeout = setTimeout(async () => {
+            this.queueService.addNotification({
+              receiversId: [issue.assigneeId],
+              type: NotificationType.Task_Deadline,
+              title: NotificationTitle.Task_Deadline,
+              content: NotificationContent.Task_Deadline,
+              targetType: NotificationTargetType.CLIENT,
+              createdBy: userId,
+              targetId: issueId,
+              redirectType: NotificationRedirectType.PROJECT_ISSUE,
+              redirectId: projectId,
+              metadata: {
+                userName: user.name,
+                projectKey: projectInfo.key,
+                issueId,
+                issueSubject: params.subject,
+              },
+            });
+          }, deadlineTime - timeNow - 1000 * 60 * 10);
+          if (this.schedulerRegistry.doesExist('timeout', `issue_${issueId}`)) {
+            this.schedulerRegistry.deleteTimeout(`issue_${issueId}`);
+          }
+          this.schedulerRegistry.addTimeout(`issue_${issueId}`, timeout);
+        }
+        const assignee = await this.globalCacheService.getUserInfo(issue.assigneeId);
+
+        const timeoutOnTime = setTimeout(async () => {
+          this.queueService.addNotification({
+            // delete duplication ids
+            receiversId: [...new Set([issue.assigneeId, ...listPMAndSubPMIds])],
+            type: NotificationType.Task_Deadline,
+            title: NotificationTitle.Task_Deadline_On_Time,
+            content: NotificationContent.Task_Deadline_On_Time,
+            targetType: NotificationTargetType.CLIENT,
+            createdBy: userId,
+            targetId: issueId,
+            redirectType: NotificationRedirectType.PROJECT_ISSUE,
+            redirectId: projectId,
+            metadata: {
+              userName: assignee.name,
+              projectKey: projectInfo.key,
+              issueId,
+              issueSubject: params.subject,
+            },
+          });
+        }, deadlineTime - timeNow);
+        if (this.schedulerRegistry.doesExist('timeout', `issue_on_time_${issueId}`)) {
+          this.schedulerRegistry.deleteTimeout(`issue_on_time_${issueId}`);
+        }
+        this.schedulerRegistry.addTimeout(`issue_on_time_${issueId}`, timeoutOnTime);
+      }
+
       return true;
     });
   }

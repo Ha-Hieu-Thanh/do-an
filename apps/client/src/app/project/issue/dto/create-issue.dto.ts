@@ -94,7 +94,7 @@ export class CreateIssueDto {
    * @example 2025-09-11
    */
   @IsOptional()
-  @IsDateCustom()
+  @IsDateCustom({ isCheckNow: true })
   dueDate?: string;
 
   /**

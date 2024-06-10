@@ -16,6 +16,7 @@ import Notification from '@app/database-type-orm/entities/task-manager/Notificat
 import { TypeOrmModule } from '@nestjs/typeorm';
 import NotificationMember from '@app/database-type-orm/entities/task-manager/NotificationMember';
 import { AdminModule } from './admin/admin.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const moduleFeatures = [AuthModule, ProjectModule, ProfileModule, AdminModule];
 @Module({
@@ -30,6 +31,7 @@ const moduleFeatures = [AuthModule, ProjectModule, ProfileModule, AdminModule];
     }),
     ...moduleFeatures,
     TypeOrmModule.forFeature([Notification, NotificationMember]),
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [...PROVIDERS_MODULE_COMMON, AppService],

@@ -46,7 +46,9 @@ export function IsDateCustom(
         validate(date: string, params: ValidationArguments): boolean {
           if (!date || !isString(date)) return false;
 
-          const regEx = /^\d{4}-\d{2}-\d{2}$/;
+          // const regEx = /^\d{4}-\d{2}-\d{2}$/;
+          // regex for YYYY-MM-DD HH:mm
+          const regEx = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
 
           if (!date.match(regEx)) return false; // Invalid format
 
@@ -54,8 +56,8 @@ export function IsDateCustom(
           const dNum = d.getTime();
           if (!dNum && dNum !== 0) return false; // NaN value, Invalid date
 
-          const currentDate = moment().utcOffset(0).format('YYYY-MM-DD');
-          if (property?.isCheckNow && date < currentDate) {
+          const currentDate = new Date().getTime();
+          if (property?.isCheckNow && dNum < currentDate) {
             return false;
           }
 
@@ -63,11 +65,11 @@ export function IsDateCustom(
             return false;
           }
 
-          return d.toISOString().slice(0, 10) === date; // Checking leap day
+          return true;
         },
 
         defaultMessage(args: ValidationArguments): string {
-          return `${propertyName} Date is format yyyy-mm-dd`;
+          return `${propertyName} Date is not valid`;
         },
       },
     });
