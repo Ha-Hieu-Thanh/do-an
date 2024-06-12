@@ -85,4 +85,13 @@ export class ListProjectIssueDto extends PageSizeDto {
   @IsOptional()
   @IsString()
   sortField?: string;
+
+  /**
+   * export csv
+   * @example true
+   */
+  @IsOptional()
+  @Transform(({ value }) => (value === 'true' ? true : false))
+  @IsBoolean()
+  exportCsv?: boolean;
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UtilsService } from '@app/helpers/utils/utils.service';
-import { Between, DataSource, LessThan, LessThanOrEqual, MoreThan, Not, Repository } from 'typeorm';
+import { Between, DataSource, In, LessThan, LessThanOrEqual, MoreThan, Not, Repository } from 'typeorm';
 import Issue from '@app/database-type-orm/entities/task-manager/Issue';
 import { GlobalCacheService } from '@app/cache';
 import { Exception } from '@app/core/exception';
@@ -15,6 +15,7 @@ import {
   NotificationTargetType,
   NotificationTitle,
   NotificationType,
+  TextPriority,
   UserProjectRole,
   UserProjectStatus,
   UserRole,
@@ -33,6 +34,10 @@ import { ListProjectIssueHistoryDto } from './dto/list-project-issue-history.dto
 import { QueueService } from '@app/queue';
 import UserLeadCategory from '@app/database-type-orm/entities/task-manager/UserLeadCategory';
 import { SchedulerRegistry } from '@nestjs/schedule';
+import * as moment from 'moment';
+import { LibraryS3UploadService } from '@app/s3-upload';
+import { escape } from 'lodash';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class IssueService {
@@ -46,6 +51,8 @@ export class IssueService {
     private readonly globalCacheService: GlobalCacheService,
     private readonly queueService: QueueService,
     private readonly schedulerRegistry: SchedulerRegistry,
+    private readonly libraryS3UploadService: LibraryS3UploadService,
+    private readonly config: ConfigService,
   ) {}
 
   async listProjectIssue(userId: number, query: ListProjectIssueDto, projectId: number) {
@@ -58,7 +65,6 @@ export class IssueService {
       .leftJoinAndMapOne('i.assignee', User, 'u', 'u.id = i.assigneeId')
       .leftJoinAndMapOne('i.created', User, 'uc', 'uc.id = i.createdBy')
       .innerJoinAndMapOne('i.project', Project, 'p', 'p.id = i.projectId')
-
       .select([
         'i.id',
         'i.subject',
@@ -129,12 +135,211 @@ export class IssueService {
       queryBuilder.andWhere('i.createdBy = :userId', { userId });
     }
 
-    const [results, totalItems] = await queryBuilder.skip(query.skip).take(query.pageSize).getManyAndCount();
+    if (!query.exportCsv) {
+      const [results, totalItems] = await queryBuilder.skip(query.skip).take(query.pageSize).getManyAndCount();
 
-    this.utilsService.assignThumbURLVer2(results, ['assignee', 'avatar']);
-    this.utilsService.assignThumbURLVer2(results, ['created', 'avatar']);
+      this.utilsService.assignThumbURLVer2(results, ['assignee', 'avatar']);
+      this.utilsService.assignThumbURLVer2(results, ['created', 'avatar']);
 
-    return this.utilsService.returnPaging(results, totalItems, query);
+      return this.utilsService.returnPaging(results, totalItems, query);
+    }
+
+    const results = await queryBuilder.getMany();
+
+    // get list state by project
+    const states = await this.projectIssueStateRepository.find({
+      where: { projectId },
+      select: ['id', 'name'],
+    });
+
+    // reduce result and state to return a list of result for each state
+    const resultByState = results.reduce((acc, cur) => {
+      if (!acc[cur.stateId]) {
+        acc[cur.stateId] = {
+          state: states.find((state) => state.id === cur.stateId),
+          data: [],
+        };
+      }
+      acc[cur.stateId].data.push(cur);
+      return acc;
+    }, {});
+
+    // make a template for data buffer file and push it to s3
+    // date time format('YYYY-MM-DD HH:mm') GMT+7
+    const dateTmeFormat = moment().format('YYYY-MM-DD_HH:mm');
+    const fileName = `list_issue_${dateTmeFormat}.csv`;
+
+    const dataFile = await this.convertListResultToCsv(states, resultByState, query, userId);
+
+    await this.libraryS3UploadService.putImageToS3({ buffer: dataFile, mimetype: 'text/csv' }, fileName);
+
+    return {
+      domain: this.config.get('s3Upload').domain,
+      fileName,
+    };
+  }
+
+  async listProjectIssueWithElasticsearch(userId: number, query: ListProjectIssueDto, projectId: number) {}
+
+  async convertListResultToCsv(
+    states: ProjectIssueState[],
+    resultByState: {},
+    filter: ListProjectIssueDto,
+    userId: number,
+  ) {
+    /**
+     * Fitler:
+     * keyword: ...
+     * assignee: ...
+     * category: ...
+     * state: ...
+     * type: ...
+     * version: ...
+     * sortField: ...
+     * createdByMe: ... (yes or no)
+     *
+     * -----------------
+     * State 1
+     * list of issue by state 1
+     *
+     * -----------------
+     * State 2
+     * list of issue by state 2
+     *
+     * -----------------
+     * State 3
+     * list of issue by state 3
+     */
+    let dataBuffer = '';
+    let dataBufferDeadline = '';
+    // TODO: add header filter, add detail data
+    let headerFilter = '-----FILTER-----\n';
+
+    const task: any[] = [];
+    if (filter.assigneeId) {
+      task.push(this.globalCacheService.getUserInfo(filter.assigneeId));
+    } else {
+      task.push(null);
+    }
+
+    if (filter.categoryId) {
+      task.push(
+        this.dataSource
+          .getRepository(ProjectIssueCategory)
+          .findOne({ where: { id: filter.categoryId }, select: ['name'] }),
+      );
+    } else {
+      task.push(null);
+    }
+
+    if (filter.stateIds) {
+      task.push(
+        this.dataSource.getRepository(ProjectIssueState).find({ where: { id: In(filter.stateIds) }, select: ['name'] }),
+      );
+    } else {
+      task.push(null);
+    }
+
+    if (filter.typeId) {
+      task.push(
+        this.dataSource.getRepository(ProjectIssueType).findOne({ where: { id: filter.typeId }, select: ['name'] }),
+      );
+    } else {
+      task.push(null);
+    }
+
+    if (filter.versionId) {
+      task.push(
+        this.dataSource.getRepository(ProjectVersion).findOne({ where: { id: filter.versionId }, select: ['name'] }),
+      );
+    } else {
+      task.push(null);
+    }
+
+    if (filter.isCreated) {
+      task.push(this.globalCacheService.getUserInfo(userId));
+    } else {
+      task.push(null);
+    }
+
+    // get all info from task
+    const [assignee, category, listState, type, version, user] = await Promise.all(task);
+
+    if (filter.keyword) {
+      headerFilter += `Keyword:,${filter.keyword}\n`;
+    }
+    if (filter.assigneeId) {
+      headerFilter += `Assignee:,${assignee.name}\n`;
+    }
+    if (filter.categoryId) {
+      headerFilter += `Category:,${category?.name}\n`;
+    }
+    if (filter.stateIds) {
+      console.log({ listState });
+      headerFilter += `State:,${(listState as any[]).map((state) => state?.name).join(',')}\n`;
+      console.log('check chay o day');
+    }
+    if (filter.typeId) {
+      headerFilter += `Type:,${type?.name}\n`;
+    }
+    if (filter.versionId) {
+      headerFilter += `Version:,${version?.name}\n`;
+    }
+    if (filter.sortField) {
+      headerFilter += `Sort by field:,${filter.sortField}\n`;
+    }
+    if (filter.isCreated) {
+      headerFilter += `Created by:,${user?.name}`;
+    }
+    dataBuffer += headerFilter;
+
+    // add main data
+    for (const state of states) {
+      const data = resultByState[state.id];
+      if (data) {
+        dataBuffer += `-----------------\n`;
+        dataBuffer += `${state.name}\n`;
+        // name of col
+        dataBuffer += `Type,Issue ID,Subject,Created By,Assignee,Category,Priority,Version,Create Date,Start Date,Due Date,Estimated Hours,Actual Hours,Updated At\n`;
+        for (const issue of data.data) {
+          dataBuffer += `${issue?.projectIssueType?.name || ''},${issue.project.key}-${issue.id},${
+            issue?.subject || ''
+          },${issue?.created?.name || ''},${issue?.assignee?.name || ''},${issue?.projectIssueCategory?.name || ''},${
+            TextPriority[issue.priority]
+          },${issue?.projectVersion?.name || ''},${moment(issue.createdAt).utcOffset(7).format('YYYY-MM-DD HH:mm')},${
+            issue?.startDate || ''
+          },${issue?.dueDate || ''},${issue?.estimatedHours || ''},${issue?.actualHours || ''},${
+            issue?.updatedAt ? moment(issue.updatedAt).utcOffset(7).format('YYYY-MM-DD HH:mm') : ''
+          }\n`;
+
+          // check task tre deadline
+          const deadlineTime = new Date(issue.dueDate).getTime();
+          const timeNow = new Date().getTime();
+
+          if (timeNow > deadlineTime && deadlineTime != 0) {
+            dataBufferDeadline += `${issue?.projectIssueType?.name || ''},${issue.project.key}-${issue.id},${
+              issue?.subject || ''
+            },${issue?.created?.name || ''},${issue?.assignee?.name || ''},${issue?.projectIssueCategory?.name || ''},${
+              TextPriority[issue.priority]
+            },${issue?.projectVersion?.name || ''},${moment(issue.createdAt).utcOffset(7).format('YYYY-MM-DD HH:mm')},${
+              issue?.startDate || ''
+            },${issue?.dueDate || ''},${issue?.estimatedHours || ''},${issue?.actualHours || ''},${
+              issue?.updatedAt ? moment(issue.updatedAt).utcOffset(7).format('YYYY-MM-DD HH:mm') : ''
+            }\n`;
+          }
+        }
+      }
+    }
+
+    // list task tre deadline
+    if (dataBufferDeadline) {
+      dataBuffer += `-----------------\n`;
+      dataBuffer += `Task tre deadline\n`;
+      dataBuffer += `Type,Issue ID,Subject,Created By,Assignee,Category,Priority,Version,Create Date,Start Date,Due Date,Estimated Hours,Actual Hours,Updated At\n`;
+      dataBuffer += dataBufferDeadline;
+    }
+
+    return dataBuffer;
   }
 
   async listGanttChartIssue(userId: number, query: ListProjectIssueDto, projectId: number) {
@@ -755,7 +960,6 @@ export class IssueService {
 
         const timeoutOnTime = setTimeout(async () => {
           this.queueService.addNotification({
-            // delete duplication ids
             receiversId: [...new Set([issue.assigneeId, ...listPMAndSubPMIds])],
             type: NotificationType.Task_Deadline,
             title: NotificationTitle.Task_Deadline_On_Time,
