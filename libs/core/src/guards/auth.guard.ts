@@ -36,12 +36,11 @@ export class AuthGuardUrl implements CanActivate {
     const headers = request.headers;
     const projectId = Number(headers['projectid']);
 
-    if (isProject && !projectId) {
+    const userInfo = await this.globalCacheService.getUserInfo(user.id);
+    if (isProject && !projectId && userInfo.role !== UserRole.ADMIN) {
       throw new Forbidden('Missing projectId in header');
     }
     request.projectId = projectId;
-
-    const userInfo = await this.globalCacheService.getUserInfo(user.id);
 
     if (userInfo.status !== UserStatus.ACTIVE) {
       throw new Forbidden(`User Blocked`);

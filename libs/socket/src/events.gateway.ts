@@ -112,7 +112,6 @@ export class EventsGateway {
   @SubscribeMessage(SocketEventKeys.PING)
   async handlePing(client: Socket) {
     try {
-      console.log('aloo');
       return this.utilsService.socketSuccess(SocketEventKeys.PONG, client.data.id);
     } catch (error) {
       return this.utilsService.socketFail(SocketEventKeys.PONG, error);
@@ -129,13 +128,10 @@ export class EventsGateway {
   // function to handle after frontend watching the issue then call the socket -> then join the room name 'ISSUE_COMMENT_`${issueId}'
   @SubscribeMessage(SocketEventKeys.JOIN_ISSUE_COMMENT)
   async joinIssueComment(client: Socket, issueId: number) {
-    this.logger.log('HELLO');
-    console.log({ issueId });
     try {
       // const parsedBody = JSON.parse(body) as JoinLeaveIssueCommentDto;
 
       // const issueId = parsedBody.issx`ueId;
-      console.log(`JOIN_ISSUE_COMMENT_${issueId}`);
       client.join(this.generateIssueCommentRoom(issueId));
       return this.utilsService.socketSuccess(SocketEventKeys.JOIN_ISSUE_COMMENT, client.data.id);
     } catch (error) {

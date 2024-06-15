@@ -14,7 +14,6 @@ export class LibrarySendMailService {
   ) {}
 
   async sendMailNodemailer(data: SendMailDto) {
-    console.log("sendMailNodemailer -> data", data)
     const nodemailerConfig = this.options.nodemailer;
     try {
       const transporter = nodemailer.createTransport({

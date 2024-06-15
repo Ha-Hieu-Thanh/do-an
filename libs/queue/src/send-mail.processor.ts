@@ -56,7 +56,6 @@ export class SendMailQueue {
       html: MailHtml[mailType],
     };
 
-    console.log({templateMailByType})
 
     const content = format(templateMailByType.content, metadata);
     const subject = format(templateMailByType.subject, metadata);

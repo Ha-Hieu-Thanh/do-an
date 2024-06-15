@@ -38,6 +38,10 @@ import * as moment from 'moment';
 import { LibraryS3UploadService } from '@app/s3-upload';
 import { escape } from 'lodash';
 import { ConfigService } from '@nestjs/config';
+import { ElasticsearchService } from '@nestjs/elasticsearch';
+import { lastValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
+import * as _ from 'lodash';
 
 @Injectable()
 export class IssueService {
@@ -53,7 +57,42 @@ export class IssueService {
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly libraryS3UploadService: LibraryS3UploadService,
     private readonly config: ConfigService,
+    private readonly elkService: ElasticsearchService,
+    private readonly httpService: HttpService,
   ) {}
+
+  async syncMySQLToELK() {
+    const listIssues = await this.issueRepository.find({
+      select: [
+        'id',
+        'subject',
+        'projectId',
+        'description',
+        'assigneeId',
+        'priority',
+        'startDate',
+        'dueDate',
+        'estimatedHours',
+        'actualHours',
+        'typeId',
+        'stateId',
+        'versionId',
+        'categoryId',
+        'createdAt',
+        'createdBy',
+        'updatedAt',
+        'updatedBy',
+      ],
+    });
+
+    listIssues.forEach((issue) => {
+      this.queueService.addSyncTaskElk({
+        id: issue.id,
+        issue,
+        type: 'create',
+      });
+    });
+  }
 
   async listProjectIssue(userId: number, query: ListProjectIssueDto, projectId: number) {
     const queryBuilder = this.issueRepository
@@ -68,6 +107,7 @@ export class IssueService {
       .select([
         'i.id',
         'i.subject',
+        'i.description',
         'i.priority',
         'i.startDate',
         'i.dueDate',
@@ -100,86 +140,267 @@ export class IssueService {
         'p.name',
         'p.key',
       ])
-      .where('i.projectId = :projectId AND i.status = :IssueStatusActive', {
-        projectId,
+      .where('i.status = :IssueStatusActive', {
         IssueStatusActive: IssueStatus.ACTIVE,
       });
 
-    if (query.keyword) {
-      queryBuilder.andWhere('i.subject LIKE :keyword', { keyword: `%${query.keyword}%` });
-    }
-    if (query.assigneeId) {
-      queryBuilder.andWhere('i.assigneeId = :assigneeId', { assigneeId: query.assigneeId });
-    }
-    if (query.categoryId) {
-      queryBuilder.andWhere('i.categoryId = :categoryId', { categoryId: query.categoryId });
-    }
-    if (query.stateIds?.length) {
-      queryBuilder.andWhere('i.stateId IN(:stateIds)', { stateIds: query.stateIds });
-    }
-    if (query.typeId) {
-      queryBuilder.andWhere('i.typeId = :typeId', { typeId: query.typeId });
-    }
-    if (query.versionId) {
-      queryBuilder.andWhere('i.versionId = :versionId', { versionId: query.versionId });
-    }
-    if (query.sortField) {
-      queryBuilder.orderBy(`i.${query.sortField}`, 'DESC');
-    }
-    if (query.isGetAll) {
-      queryBuilder.addOrderBy('i.id', 'DESC');
-    } else {
-      queryBuilder.addOrderBy('i.order', 'DESC');
-    }
-    if (query.isCreated) {
-      queryBuilder.andWhere('i.createdBy = :userId', { userId });
+    if (projectId) {
+      queryBuilder.andWhere('i.projectId = :projectId', { projectId });
     }
 
-    if (!query.exportCsv) {
-      const [results, totalItems] = await queryBuilder.skip(query.skip).take(query.pageSize).getManyAndCount();
+    if (!query.isAdvancedSearch || !query.keyword || query.keyword === '') {
+      if (query.keyword) {
+        queryBuilder.andWhere('i.subject LIKE :keyword', { keyword: `%${query.keyword}%` });
+      }
+      if (query.assigneeId) {
+        queryBuilder.andWhere('i.assigneeId = :assigneeId', { assigneeId: query.assigneeId });
+      }
+      if (query.categoryId) {
+        queryBuilder.andWhere('i.categoryId = :categoryId', { categoryId: query.categoryId });
+      }
+      if (query.stateIds?.length) {
+        queryBuilder.andWhere('i.stateId IN(:stateIds)', { stateIds: query.stateIds });
+      }
+      if (query.typeId) {
+        queryBuilder.andWhere('i.typeId = :typeId', { typeId: query.typeId });
+      }
+      if (query.versionId) {
+        queryBuilder.andWhere('i.versionId = :versionId', { versionId: query.versionId });
+      }
+      if (query.sortField) {
+        queryBuilder.orderBy(`i.${query.sortField}`, 'DESC');
+      }
+      if (query.isGetAll) {
+        queryBuilder.addOrderBy('i.id', 'DESC');
+      } else {
+        queryBuilder.addOrderBy('i.order', 'DESC');
+      }
+      if (query.isCreated) {
+        queryBuilder.andWhere('i.createdBy = :userId', { userId });
+      }
+
+      if (!query.exportCsv) {
+        const [results, totalItems] = await queryBuilder.skip(query.skip).take(query.pageSize).getManyAndCount();
+
+        this.utilsService.assignThumbURLVer2(results, ['assignee', 'avatar']);
+        this.utilsService.assignThumbURLVer2(results, ['created', 'avatar']);
+
+        return this.utilsService.returnPaging(results, totalItems, query);
+      }
+
+      const results = await queryBuilder.getMany();
+
+      // get list state by project
+      const states = await this.projectIssueStateRepository.find({
+        where: { projectId },
+        select: ['id', 'name'],
+      });
+
+      // reduce result and state to return a list of result for each state
+      const resultByState = results.reduce((acc, cur) => {
+        if (!acc[cur.stateId]) {
+          acc[cur.stateId] = {
+            state: states.find((state) => state.id === cur.stateId),
+            data: [],
+          };
+        }
+        acc[cur.stateId].data.push(cur);
+        return acc;
+      }, {});
+
+      // make a template for data buffer file and push it to s3
+      // date time format('YYYY-MM-DD HH:mm') GMT+7
+      const dateTmeFormat = moment().format('YYYY-MM-DD_HH:mm');
+      const fileName = `list_issue_${dateTmeFormat}.csv`;
+
+      const dataFile = await this.convertListResultToCsv(states, resultByState, query, userId);
+
+      await this.libraryS3UploadService.putImageToS3({ buffer: dataFile, mimetype: 'text/csv' }, fileName);
+
+      return {
+        domain: this.config.get('s3Upload').domain,
+        fileName,
+      };
+    } else {
+      const listIssues = await this.listProjectIssueWithElasticsearch(userId, query, projectId);
+      const listIssueIds = listIssues?.map((issue) => issue.id);
+
+      queryBuilder.andWhereInIds(listIssueIds);
+
+      const results = await queryBuilder.getMany();
+
+      // sort results by arrange of listIssueIds
+      results.sort((a, b) => {
+        return listIssueIds!.indexOf(a.id) - listIssueIds!.indexOf(b.id);
+      });
 
       this.utilsService.assignThumbURLVer2(results, ['assignee', 'avatar']);
       this.utilsService.assignThumbURLVer2(results, ['created', 'avatar']);
 
-      return this.utilsService.returnPaging(results, totalItems, query);
+      return results;
     }
-
-    const results = await queryBuilder.getMany();
-
-    // get list state by project
-    const states = await this.projectIssueStateRepository.find({
-      where: { projectId },
-      select: ['id', 'name'],
-    });
-
-    // reduce result and state to return a list of result for each state
-    const resultByState = results.reduce((acc, cur) => {
-      if (!acc[cur.stateId]) {
-        acc[cur.stateId] = {
-          state: states.find((state) => state.id === cur.stateId),
-          data: [],
-        };
-      }
-      acc[cur.stateId].data.push(cur);
-      return acc;
-    }, {});
-
-    // make a template for data buffer file and push it to s3
-    // date time format('YYYY-MM-DD HH:mm') GMT+7
-    const dateTmeFormat = moment().format('YYYY-MM-DD_HH:mm');
-    const fileName = `list_issue_${dateTmeFormat}.csv`;
-
-    const dataFile = await this.convertListResultToCsv(states, resultByState, query, userId);
-
-    await this.libraryS3UploadService.putImageToS3({ buffer: dataFile, mimetype: 'text/csv' }, fileName);
-
-    return {
-      domain: this.config.get('s3Upload').domain,
-      fileName,
-    };
   }
 
-  async listProjectIssueWithElasticsearch(userId: number, query: ListProjectIssueDto, projectId: number) {}
+  async listProjectIssueWithElasticsearch(userId: number, query: ListProjectIssueDto, projectId?: number | undefined) {
+    const {
+      keyword,
+      skip,
+      pageIndex,
+      pageSize,
+      exportCsv,
+      isCreated,
+      isGetAll,
+      sortField,
+      isAdvancedSearch,
+      ...others
+    } = query;
+    if (!keyword) return;
+    const text = keyword;
+    const vector = (await lastValueFrom(this.httpService.post('http://127.0.0.1:8000/embed/', { text }))).data
+      ?.embedding;
+
+    // get all project that user join
+    const user = await this.globalCacheService.getUserInfo(userId);
+    // const listProjectIdsQuery = this.userProjectRepository.createQueryBuilder('up');
+
+    // if (user.role !== UserRole.ADMIN) {
+    //   // add where condition
+    //   listProjectIdsQuery.where('up.userId = :userId', { userId });
+    // }
+    // const listProjectIds = (await listProjectIdsQuery.select('up.projectId').getMany()).map((item) => item.projectId);
+
+    const querySearch = {
+      query: {
+        bool: {
+          must: [
+            {
+              terms: {
+                ...(user.role !== UserRole.ADMIN && { projectId: user.listProjectIds }),
+              },
+            },
+
+            // handle for others here, for each key
+            ...Object.keys(others).map((key) => {
+              // handle if array then terms else term
+              return Array.isArray(others[key])
+                ? {
+                    terms: {
+                      stateId: others[key],
+                    },
+                  }
+                : {
+                    term: {
+                      [key]: others[key],
+                    },
+                  };
+            }),
+          ],
+
+          should: [
+            // handle for case user search issueKey
+            {
+              match: {
+                issueKey: {
+                  boost: 2,
+                  query: keyword,
+                },
+              },
+            },
+            {
+              function_score: {
+                query: {
+                  match_all: {},
+                },
+                functions: [
+                  {
+                    script_score: {
+                      script: {
+                        source: "cosineSimilarity(params.query_vector, 'vectorEmbedding') + 1.0",
+                        params: {
+                          query_vector: vector,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      size: 10,
+    };
+
+    const querySearchIfProjectId = {
+      // when projectId is defined
+      query: {
+        bool: {
+          must: [
+            {
+              term: {
+                projectId,
+              },
+            },
+            // handle for others here, for each key
+            ...Object.keys(others).map((key) => {
+              return Array.isArray(others[key])
+                ? {
+                    terms: {
+                      // [key]: others[key],
+                      stateId: others[key],
+                    },
+                  }
+                : {
+                    term: {
+                      [key]: others[key],
+                    },
+                  };
+            }),
+          ],
+          should: [
+            // handle for case user search issueKey
+            {
+              match: {
+                issueKey: {
+                  boost: 2,
+                  query: keyword,
+                },
+              },
+            },
+            {
+              function_score: {
+                query: {
+                  match_all: {},
+                },
+                functions: [
+                  {
+                    script_score: {
+                      script: {
+                        source: "cosineSimilarity(params.query_vector, 'vectorEmbedding') + 1.0",
+                        params: {
+                          query_vector: vector,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    };
+
+    const { hits } = await this.elkService.search({
+      index: 'task',
+      ...(projectId ? querySearchIfProjectId : querySearch),
+    });
+
+    const results = hits.hits.map((hit) => {
+      return _.omit(hit._source as any, 'vectorEmbedding');
+    });
+    return results;
+  }
 
   async convertListResultToCsv(
     states: ProjectIssueState[],
@@ -275,9 +496,7 @@ export class IssueService {
       headerFilter += `Category:,${category?.name}\n`;
     }
     if (filter.stateIds) {
-      console.log({ listState });
       headerFilter += `State:,${(listState as any[]).map((state) => state?.name).join(',')}\n`;
-      console.log('check chay o day');
     }
     if (filter.typeId) {
       headerFilter += `Type:,${type?.name}\n`;
@@ -541,6 +760,41 @@ export class IssueService {
 
         this.schedulerRegistry.addTimeout(`issue_on_time_${issueId}`, timeoutOnTime);
       }
+
+      /**
+       * Add issue to elasticsearch
+       */
+      const issue = await issueRepository.findOne({
+        where: { id: issueId, status: IssueStatus.ACTIVE, projectId },
+        select: [
+          'id',
+          'subject',
+          'projectId',
+          'description',
+          'assigneeId',
+          'priority',
+          'startDate',
+          'dueDate',
+          'estimatedHours',
+          'actualHours',
+          'typeId',
+          'stateId',
+          'versionId',
+          'categoryId',
+          'createdAt',
+          'createdBy',
+          'updatedAt',
+          'updatedBy',
+        ],
+      });
+      if (!issue) return false;
+
+      this.queueService.addSyncTaskElk({
+        id: issueId,
+        issue,
+        type: 'create',
+      });
+
       return true;
     });
   }
@@ -982,6 +1236,40 @@ export class IssueService {
         }
         this.schedulerRegistry.addTimeout(`issue_on_time_${issueId}`, timeoutOnTime);
       }
+
+      /**
+       * update elk
+       */
+      const issue = await issueRepository.findOne({
+        where: { id: issueId, status: IssueStatus.ACTIVE, projectId },
+        select: [
+          'id',
+          'subject',
+          'description',
+          'projectId',
+          'assigneeId',
+          'priority',
+          'startDate',
+          'dueDate',
+          'estimatedHours',
+          'actualHours',
+          'typeId',
+          'stateId',
+          'versionId',
+          'categoryId',
+          'createdAt',
+          'createdBy',
+          'updatedAt',
+          'updatedBy',
+        ],
+      });
+      if (!issue) return false;
+
+      this.queueService.addSyncTaskElk({
+        id: issueId,
+        issue,
+        type: 'update',
+      });
 
       return true;
     });

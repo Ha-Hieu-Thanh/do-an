@@ -1,3 +1,4 @@
+import Issue from '@app/database-type-orm/entities/task-manager/Issue';
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import Bull, { Queue } from 'bull';
@@ -28,6 +29,12 @@ export interface IQueuePushNotification {
   targetId?: number;
   metadata?: {};
 }
+
+export interface ISyncTaskElk {
+  id: number;
+  issue: Issue;
+  type: 'create' | 'update';
+}
 @Injectable()
 export class QueueService {
   private readonly logger = new Logger(QueueService.name);
@@ -37,6 +44,8 @@ export class QueueService {
     private readonly sendMailQueue: Queue,
     @InjectQueue(QueueProcessor.PUSH_NOTIFICATION)
     private readonly pushNotification: Queue,
+    @InjectQueue(QueueProcessor.SYNC_TASK_ELK)
+    private readonly syncTaskElk: Queue,
   ) {}
 
   async addSendMailQueue(data: IQueueSendMail, opts?: Bull.JobOptions) {
@@ -45,5 +54,9 @@ export class QueueService {
 
   async addNotification(metadata: IQueuePushNotification, opts?: Bull.JobOptions) {
     return this.pushNotification.add(QueueProcessor.PUSH_NOTIFICATION, metadata, { ...opts });
+  }
+
+  async addSyncTaskElk(data: ISyncTaskElk, opts?: Bull.JobOptions) {
+    return this.syncTaskElk.add(QueueProcessor.SYNC_TASK_ELK, data, { ...opts });
   }
 }

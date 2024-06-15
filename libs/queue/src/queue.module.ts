@@ -13,6 +13,9 @@ import { PushNotificationQueue } from './push-notification.processor';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import Notification from '@app/database-type-orm/entities/task-manager/Notification';
 import NotificationMember from '@app/database-type-orm/entities/task-manager/NotificationMember';
+import { SyncTaskElkQueue } from './sync-task-elk.processor';
+import { ElasticsearchModule } from '@nestjs/elasticsearch';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -50,6 +53,9 @@ import NotificationMember from '@app/database-type-orm/entities/task-manager/Not
       {
         name: QueueProcessor.PUSH_NOTIFICATION,
       },
+      {
+        name: QueueProcessor.SYNC_TASK_ELK,
+      },
     ),
     LibrarySendMailModule.registerAsync({
       imports: [ConfigModule],
@@ -59,8 +65,12 @@ import NotificationMember from '@app/database-type-orm/entities/task-manager/Not
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([Notification, NotificationMember]),
+    ElasticsearchModule.register({
+      node: 'http://localhost:9200',
+    }),
+    HttpModule,
   ],
-  providers: [QueueService, SendMailQueue, PushNotificationQueue],
-  exports: [QueueService, SendMailQueue, PushNotificationQueue],
+  providers: [QueueService, SendMailQueue, PushNotificationQueue, SyncTaskElkQueue],
+  exports: [QueueService, SendMailQueue, PushNotificationQueue, SyncTaskElkQueue],
 })
 export class QueueModule {}

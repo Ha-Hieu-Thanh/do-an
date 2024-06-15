@@ -23,6 +23,7 @@ export interface IGetUserInfoCache {
   email: string;
   status: UserStatus;
   role: UserRole;
+  listProjectIds: number[];
 }
 
 export interface IUserProjectByUserId {

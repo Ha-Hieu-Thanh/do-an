@@ -245,6 +245,7 @@ export enum Gender {
 export enum QueueProcessor {
   PROCESS_SEND_MAIL = `PROCESS_SEND_MAIL`,
   PUSH_NOTIFICATION = `PUSH_NOTIFICATION`,
+  SYNC_TASK_ELK = `SYNC_TASK_ELK`,
 }
 
 /* -------------------------------------------------------------------------- */

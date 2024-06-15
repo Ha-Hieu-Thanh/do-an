@@ -45,7 +45,7 @@ export class ListProjectIssueDto extends PageSizeDto {
   @IsInt()
   @Min(1)
   @Max(18446744073709550)
-  assigneeId: number;
+  assigneeId?: number;
 
   /**
    * stateIds
@@ -94,4 +94,13 @@ export class ListProjectIssueDto extends PageSizeDto {
   @Transform(({ value }) => (value === 'true' ? true : false))
   @IsBoolean()
   exportCsv?: boolean;
+
+  /**
+   * advanced search
+   * @example 1
+   */
+  @IsOptional()
+  @Transform(({ value }) => (value === 'true' ? true : false))
+  @IsBoolean()
+  isAdvancedSearch?: boolean;
 }

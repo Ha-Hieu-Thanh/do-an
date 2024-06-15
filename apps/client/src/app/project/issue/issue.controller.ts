@@ -16,10 +16,23 @@ import { ListProjectIssueDto } from './dto/list-project-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { getDetailProjectIssueSchema, listIssueSchema } from './issue.schema';
 import { IssueService } from './issue.service';
+import { Public } from '@app/core/decorator/api-public.decorator';
 
 @ClientControllers('project/issue')
 export class IssueController {
   constructor(private readonly issueService: IssueService) {}
+
+  @Post('search-with-elasticsearch')
+  @Public()
+  async listProjectIssueWithElasticsearch(@Body() body: ListProjectIssueDto) {
+    return this.issueService.listProjectIssueWithElasticsearch(1, body);
+  }
+
+  @Get()
+  @Public()
+  async syncMySQLToELK() {
+    return this.issueService.syncMySQLToELK();
+  }
 
   @Post('create')
   @Project()
@@ -37,19 +50,20 @@ export class IssueController {
   }
 
   @Get('list')
-  @Project()
-  @CheckPolicies(new PolicyHandlerCustom(Action.Read, Subject.ProjectIssue))
-  @ApiBearerAuth()
+  @Public()
+  // @Project()
+  // @CheckPolicies(new PolicyHandlerCustom(Action.Read, Subject.ProjectIssue))
+  // @ApiBearerAuth()
   @ApiOperation({
     summary: 'List project issue',
   })
   @ApiResponse(listIssueSchema)
   async listProjectIssue(
-    @UserData() user: Express.User,
+    // @UserData() user: Express.User,
     @Req() req: Request,
     @Query(AssignPagingPipe) query: ListProjectIssueDto,
   ) {
-    return this.issueService.listProjectIssue(user.id, query, req.projectId);
+    return this.issueService.listProjectIssue(1, query, req.projectId);
   }
 
   @Get('detail/:issueId')

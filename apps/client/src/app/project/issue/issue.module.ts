@@ -8,12 +8,18 @@ import UserProject from '@app/database-type-orm/entities/task-manager/UserProjec
 import ProjectIssueState from '@app/database-type-orm/entities/task-manager/ProjectIssueState';
 import { QueueModule } from '@app/queue';
 import { LibraryS3UploadModule } from '@app/s3-upload';
+import { ElasticsearchModule } from '@nestjs/elasticsearch';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Issue, IssueHistory, UserProject, ProjectIssueState]),
     QueueModule,
     LibraryS3UploadModule,
+    HttpModule,
+    ElasticsearchModule.register({
+      node: 'http://localhost:9200',
+    }),
   ],
   controllers: [IssueController],
   providers: [IssueService],

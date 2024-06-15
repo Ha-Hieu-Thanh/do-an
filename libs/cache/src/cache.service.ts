@@ -82,19 +82,31 @@ export class GlobalCacheService {
 
     if (cacheData) return JSON.parse(cacheData) as IGetUserInfoCache;
 
-    const user = (await this.userRepository
+    const user = await this.userRepository
       .createQueryBuilder('u')
-      .select(['u.id', 'u.name', 'u.avatar', 'u.email', 'u.status', 'u.role'])
+      .leftJoinAndMapMany('u.usersProject', UserProject, 'up', 'up.userId = u.id')
+      .select(['u.id', 'u.name', 'u.avatar', 'u.email', 'u.status', 'u.role', 'up.projectId'])
       .where('u.id = :userId', { userId })
-      .getOne()) as IGetUserInfoCache;
+      .getOne();
 
     if (!user) {
       throw new Exception(ErrorCustom.Not_Found);
     }
 
-    await this.set(keyCache, JSON.stringify(user));
+    const result: IGetUserInfoCache = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      status: user.status,
+      role: user.role,
+      avatar: user.avatar,
+      listProjectIds:
+        user?.usersProject && user?.usersProject.length > 0 ? user.usersProject.map((item) => item.projectId) : [],
+    };
 
-    return user as IGetUserInfoCache;
+    await this.set(keyCache, JSON.stringify(result));
+
+    return result as IGetUserInfoCache;
   }
 
   async getMultiUserInfo(userIds: number[]): Promise<IGetUserInfoCache[]> {
