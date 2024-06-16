@@ -50,20 +50,18 @@ export class IssueController {
   }
 
   @Get('list')
-  @Public()
-  // @Project()
-  // @CheckPolicies(new PolicyHandlerCustom(Action.Read, Subject.ProjectIssue))
-  // @ApiBearerAuth()
+  @CheckPolicies(new PolicyHandlerCustom(Action.Read, Subject.ProjectIssue))
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'List project issue',
   })
   @ApiResponse(listIssueSchema)
   async listProjectIssue(
-    // @UserData() user: Express.User,
+    @UserData() user: Express.User,
     @Req() req: Request,
     @Query(AssignPagingPipe) query: ListProjectIssueDto,
   ) {
-    return this.issueService.listProjectIssue(1, query, req.projectId);
+    return this.issueService.listProjectIssue(user.id, query, req.projectId);
   }
 
   @Get('detail/:issueId')
