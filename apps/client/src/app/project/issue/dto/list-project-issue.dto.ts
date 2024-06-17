@@ -60,6 +60,18 @@ export class ListProjectIssueDto extends PageSizeDto {
   stateIds?: number[];
 
   /**
+   * projectIds
+   * @example  [2]
+   */
+  @IsOptional()
+  @Transform(({ value }) => value.map((item: any) => Number(item)))
+  @IsArray()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @Max(18446744073709550, { each: true })
+  projectIds?: number[];
+
+  /**
    * is get all
    * @example 1
    */

@@ -161,6 +161,9 @@ export class IssueService {
       if (query.stateIds?.length) {
         queryBuilder.andWhere('i.stateId IN(:stateIds)', { stateIds: query.stateIds });
       }
+      if (query.projectIds?.length) {
+        queryBuilder.andWhere('i.projectId IN(:projectIds)', { projectIds: query.projectIds });
+      }
       if (query.typeId) {
         queryBuilder.andWhere('i.typeId = :typeId', { typeId: query.typeId });
       }
@@ -268,33 +271,42 @@ export class IssueService {
     //   listProjectIdsQuery.where('up.userId = :userId', { userId });
     // }
     // const listProjectIds = (await listProjectIdsQuery.select('up.projectId').getMany()).map((item) => item.projectId);
+    const mustQueries = [] as any[];
 
+    // Check for role
+    if (user.role !== UserRole.ADMIN) {
+      mustQueries.push({
+        terms: {
+          projectId: user.listProjectIds,
+        },
+      });
+    }
+
+    // Handle other keys in 'others' object
+    mustQueries.push(
+      ...Object.entries(others)
+        .map(([key, value]) => {
+          const keyName = Array.isArray(value) ? key.slice(0, -1) : key;
+          return Array.isArray(value)
+            ? value.length > 0
+              ? {
+                  terms: {
+                    [keyName]: value,
+                  },
+                }
+              : undefined
+            : {
+                term: {
+                  [keyName]: value,
+                },
+              };
+        })
+        .filter(Boolean), // Remove undefined values
+    );
     const querySearch = {
       query: {
         bool: {
-          must: [
-            {
-              terms: {
-                ...(user.role !== UserRole.ADMIN && { projectId: user.listProjectIds }),
-              },
-            },
-
-            // handle for others here, for each key
-            ...Object.keys(others).map((key) => {
-              // handle if array then terms else term
-              return Array.isArray(others[key])
-                ? {
-                    terms: {
-                      stateId: others[key],
-                    },
-                  }
-                : {
-                    term: {
-                      [key]: others[key],
-                    },
-                  };
-            }),
-          ],
+          must: mustQueries,
 
           should: [
             // handle for case user search issueKey
@@ -344,12 +356,13 @@ export class IssueService {
             // handle for others here, for each key
             ...Object.keys(others).map((key) => {
               return Array.isArray(others[key])
-                ? {
-                    terms: {
-                      // [key]: others[key],
-                      stateId: others[key],
-                    },
-                  }
+                ? others[key]?.length > 0
+                  ? {
+                      terms: {
+                        [key.slice(0, key.length - 1)]: others[key],
+                      },
+                    }
+                  : undefined
                 : {
                     term: {
                       [key]: others[key],
@@ -397,6 +410,8 @@ export class IssueService {
     });
 
     const results = hits.hits.map((hit) => {
+      // log score
+      console.log(hit._score);
       return _.omit(hit._source as any, 'vectorEmbedding');
     });
     return results;

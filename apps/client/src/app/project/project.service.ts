@@ -140,6 +140,14 @@ export class ProjectService {
   }
 
   async getMyProjects(userId: number, query: GetMyProjectsDto) {
+    const userInfo = await this.globalCacheService.getUserInfo(userId);
+    if (userInfo.role === UserRole.ADMIN) {
+      const projects = await this.projectRepository.find({
+        select: ['id', 'name', 'key'],
+      });
+      return projects;
+    }
+
     const queryBuilder = this.projectRepository
       .createQueryBuilder('p')
       .innerJoinAndMapOne(

@@ -42,7 +42,17 @@ export class AdminService {
     const listProjectQuery = this.dataSource
       .getRepository(Project)
       .createQueryBuilder('p')
-      .select(['p.id', 'p.memberCount', 'p.name', 'p.key', 'p.createdBy', 'p.updatedBy', 'p.createdAt', 'p.updatedAt']);
+      .select([
+        'p.id',
+        'p.memberCount',
+        'p.issueCount',
+        'p.name',
+        'p.key',
+        'p.createdBy',
+        'p.updatedBy',
+        'p.createdAt',
+        'p.updatedAt',
+      ]);
 
     if (query.keyword) {
       listProjectQuery.andWhere('p.name LIKE :keyword OR p.key LIKE :keyword', { keyword: `%${query.keyword}%` });
