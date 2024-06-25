@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import {
-  ClientLoginType,
+  // ClientLoginType,
   ErrorCustom,
   MailType,
   NotificationContent,
@@ -41,9 +41,9 @@ export class AuthService {
 
   async login(params: ClientLoginDto): Promise<IToken> {
     /* ------------------------ Login with email password ----------------------- */
-    if (params.loginType === ClientLoginType.DEFAULT) {
-      return await this.handleLogicClientLoginDefault(params);
-    }
+    // if (params.loginType === ClientLoginType.DEFAULT) {
+    return await this.handleLogicClientLoginDefault(params);
+    // }
 
     /* ----------------------------- Login with ssn ----------------------------- */
     return await this.handleLoginClientLoginOther(params);

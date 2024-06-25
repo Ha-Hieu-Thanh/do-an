@@ -22,8 +22,9 @@ export class CreateProjectVersionDto {
    * Ngày kết thúc yyyy-mm-dd (sẽ tính theo utc)=
    * @example 2025-09-11
    */
+  @IsOptional()
   @IsDateCustom()
-  endDate: string;
+  endDate?: string;
 
   /**
    * Project issue description

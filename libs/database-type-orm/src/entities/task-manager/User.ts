@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { ClientLoginType, CommonStatus, Gender, UserRole, UserStatus } from '../../../../constants/enum';
+import { Gender, UserRole, UserStatus } from '../../../../constants/enum';
 import Project from './Project';
 import UserProject from './UserProject';
 import NotificationMember from './NotificationMember';
@@ -10,23 +10,14 @@ export default class User {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id: number;
 
-  @Column({
-    name: 'login_type',
-    type: 'tinyint',
-    unsigned: true,
-    default: ClientLoginType.DEFAULT,
-    comment: 'Type dang nhap cua ben thu ba eg. fb, yahoo...',
-  })
-  loginType: ClientLoginType;
-
-  @Column({
-    name: 'sns_id',
-    type: 'varchar',
-    length: 255,
-    nullable: true,
-    comment: 'Id dang nhap cua ben thu ba',
-  })
-  snsId: string;
+  // @Column({
+  //   name: 'login_type',
+  //   type: 'tinyint',
+  //   unsigned: true,
+  //   default: ClientLoginType.DEFAULT,
+  //   comment: 'Type dang nhap cua ben thu ba eg. fb, yahoo...',
+  // })
+  // loginType: ClientLoginType;
 
   @Column({
     name: 'name',
@@ -108,14 +99,6 @@ export default class User {
     nullable: true,
   })
   tokenExp: string;
-
-  @Column({
-    name: 'is_test_account',
-    type: 'tinyint',
-    unsigned: true,
-    default: CommonStatus.IN_ACTIVE,
-  })
-  isTestAccount: number;
 
   @Column({ name: 'invite_code', type: 'varchar', length: 255, nullable: true, select: false })
   inviteCode: string | null;

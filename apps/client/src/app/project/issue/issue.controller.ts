@@ -28,7 +28,7 @@ export class IssueController {
     return this.issueService.listProjectIssueWithElasticsearch(1, body);
   }
 
-  @Get()
+  @Get('/sync-mysql-to-es')
   @Public()
   async syncMySQLToELK() {
     return this.issueService.syncMySQLToELK();

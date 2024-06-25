@@ -115,6 +115,9 @@ export class IssueService {
         'i.actualHours',
         'i.order',
         'i.stateId',
+        'i.versionId',
+        'i.typeId',
+        'i.categoryId',
         'i.projectId',
         'i.createdAt',
         'i.updatedAt',
@@ -218,7 +221,7 @@ export class IssueService {
 
       const dataFile = await this.convertListResultToCsv(states, resultByState, query, userId);
 
-      await this.libraryS3UploadService.putImageToS3({ buffer: dataFile, mimetype: 'text/csv' }, fileName);
+      await this.libraryS3UploadService.putImageToS3({ buffer: '\uFEFF' + dataFile, mimetype: 'text/csv' }, fileName);
 
       return {
         domain: this.config.get('s3Upload').domain,

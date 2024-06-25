@@ -48,7 +48,7 @@ export class VersionController {
     @Req() req: Request,
     @Body() body: CreateProjectVersionDto,
   ) {
-    if (body.startDate >= body.endDate) throw new Exception(ErrorCustom.Invalid_Input);
+    if (body.endDate && body.startDate >= body.endDate) throw new Exception(ErrorCustom.Invalid_Input);
     return this.VersionService.createProjectVersion(user.id, req.projectId, body);
   }
 

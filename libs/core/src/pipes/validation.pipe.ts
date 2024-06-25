@@ -31,7 +31,7 @@ export class CustomTextLength implements ValidatorConstraintInterface {
 }
 
 export function IsDateCustom(
-  property?: { isCheckNow?: boolean; moreThanDate?: string },
+  property?: { isCheckNow?: boolean; moreThanDate?: string; isOptional?: boolean },
   validationOptions?: ValidationOptions,
   metadata?: any,
 ): Function {

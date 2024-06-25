@@ -203,14 +203,14 @@ export enum UserStatus {
   PENDING = 3,
 }
 
-export enum ClientLoginType {
-  DEFAULT = 1,
-  LINE = 2,
-  GOOGLE = 3,
-  FACEBOOK = 4,
-  TWITTER = 5,
-  YAHOO = 6,
-}
+// export enum ClientLoginType {
+//   DEFAULT = 1,
+//   LINE = 2,
+//   GOOGLE = 3,
+//   FACEBOOK = 4,
+//   TWITTER = 5,
+//   YAHOO = 6,
+// }
 
 export enum UserRole {
   ADMIN = 1,
@@ -269,7 +269,7 @@ export enum NotificationTitle {
   Reject_Invite_To_The_Project = `{userName} reject the project`,
   YOU_ARE_MENTIONED = `{username} mentioned you in the comment.`,
   Task_Deadline = 'You have a task deadline in 10 minutes created by {userName}',
-  Task_Deadline_On_Time = '{userName} có 1 task bị trễ deadline',
+  Task_Deadline_On_Time = "{userName} has a task that's late",
 }
 export enum NotificationContent {
   WelCome_First_Login = `Thank you for choosing our system. If you encounter any issues, please contact us so that we can provide you with the fastest assistance possible.`,

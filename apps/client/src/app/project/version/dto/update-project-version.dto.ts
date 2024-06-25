@@ -74,6 +74,6 @@ export class UpdateProjectVersionDto {
    * @example 2025-09-11
    */
   @IsOptional()
-  @IsDateCustom()
+  @IsDateCustom({ isOptional: true, isCheckNow: true })
   endDate: string;
 }
