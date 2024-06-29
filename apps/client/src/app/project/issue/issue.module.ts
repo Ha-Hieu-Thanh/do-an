@@ -18,7 +18,7 @@ import { HttpModule } from '@nestjs/axios';
     LibraryS3UploadModule,
     HttpModule,
     ElasticsearchModule.register({
-      node: 'http://localhost:9200',
+      node: 'http://my-elasticsearch:9200',
     }),
   ],
   controllers: [IssueController],

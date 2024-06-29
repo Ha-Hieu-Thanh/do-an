@@ -38,8 +38,9 @@ export class SyncTaskElkQueue {
       // create vector embedding
       const text = `${issue.subject}` + `${issue.description} || ""`;
 
-      const vectorEmbedding = (await lastValueFrom(this.httpService.post('http://127.0.0.1:8000/embed/', { text })))
-        .data?.embedding;
+      const vectorEmbedding = (
+        await lastValueFrom(this.httpService.post('http://embedding_service-container:8000/embed/', { text }))
+      ).data?.embedding;
 
       await this.elasticSearchService.index({
         index: 'task',
@@ -91,8 +92,9 @@ export class SyncTaskElkQueue {
           (hits.hits[0] as any)._source.description !== issue.description
         ) {
           const text = `${issue.subject}` + `${issue.description || ''}`;
-          vectorEmbedding = (await lastValueFrom(this.httpService.post('http://127.0.0.1:8000/embed/', { text }))).data
-            ?.embedding;
+          vectorEmbedding = (
+            await lastValueFrom(this.httpService.post('http://embedding_service-container:8000/embed/', { text }))
+          ).data?.embedding;
         }
 
         await this.elasticSearchService.update({

@@ -1,6 +1,6 @@
 import { ClientControllers } from '@app/core/decorator/controller-customer.decorator';
 import { IRequest } from '@app/core/filters/http-exeption.filter';
-import { Get, Req, Post, UseInterceptors, UploadedFiles, Inject, Query, Body } from '@nestjs/common';
+import { Get, Req, Post, UseInterceptors, UploadedFiles, Inject, Query, Body, Param } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Public } from '@app/core/decorator/api-public.decorator';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -12,6 +12,7 @@ import { Request } from 'express';
 import { GetListNotificationSchema, CountNotificationUnreadSchema } from './app.schema';
 import { GetListNotificationDto } from './dto/list-notification.dto';
 import { ReadNotificationsDto } from './dto/read-notifications.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 @ClientControllers('app')
 export class AppController {
   constructor(private readonly appService: AppService) {}
@@ -76,5 +77,14 @@ export class AppController {
   @Public()
   async clearCache() {
     return this.appService.clearCache();
+  }
+
+  @SkipThrottle()
+  @Get('stress-test/:timeExecution')
+  @Public()
+  async stressTest(@Param('timeExecution') timeExecution: number) {
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    await delay(timeExecution);
+    return 'ok';
   }
 }

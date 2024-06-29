@@ -1,8 +1,20 @@
-FROM 0868124511/ubuntu20.04-node18:v2
-RUN apt-get update
+# Use the official Node.js 18 image as the base image
+FROM node:18
+
+# Set the working directory inside the container
 WORKDIR /app
-COPY . .
-RUN rm -rf node_modules
+
+# Copy the package.json and package-lock.json files to the working directory
+COPY package*.json ./
+
+# Install the dependencies
 RUN npm install
-EXPOSE 3000 3001 3002 30000 30010 30020
-CMD ["pm2", "start", "pm2-config.json", "--no-daemon"]
+
+# Copy the source code to the working directory
+COPY . .
+
+# Expose the port on which the application will run
+EXPOSE 3002
+
+# Start the application
+CMD [ "npm", "run", "start:dev" ]

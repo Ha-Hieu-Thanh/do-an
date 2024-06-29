@@ -262,7 +262,7 @@ export class IssueService {
     } = query;
     if (!keyword) return;
     const text = keyword;
-    const vector = (await lastValueFrom(this.httpService.post('http://127.0.0.1:8000/embed/', { text }))).data
+    const vector = (await lastValueFrom(this.httpService.post('http://embedding_service-container:8000/embed/', { text }))).data
       ?.embedding;
 
     // get all project that user join

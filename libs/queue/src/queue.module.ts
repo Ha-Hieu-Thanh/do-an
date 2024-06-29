@@ -66,7 +66,7 @@ import { HttpModule } from '@nestjs/axios';
     }),
     TypeOrmModule.forFeature([Notification, NotificationMember]),
     ElasticsearchModule.register({
-      node: 'http://localhost:9200',
+      node: 'http://my-elasticsearch:9200',
     }),
     HttpModule,
   ],
