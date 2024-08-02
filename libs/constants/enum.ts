@@ -13,57 +13,61 @@ export enum Environment {
 /* -------------------------------------------------------------------------- */
 export const ErrorCustom = {
   /* ---------------------------------- Common --------------------------------- */
+  CAN_NOT_BLOCK_ADMIN: {
+    ErrorCode: 'CAN_NOT_BLOCK_ADMIN',
+    ErrorMessage: 'You cant block admin',
+  },
   User_Not_Permission_Update_Issue: {
     ErrorCode: 'User_Not_Permission_Update_Issue',
-    ErrorMessage: 'User_Not_Permission_Update_Issue',
+    ErrorMessage: 'You cannot update this issue',
   },
   Member_Not_In_Conversation: {
     ErrorCode: 'Member_Not_In_Conversation',
-    ErrorMessage: 'Member_Not_In_Conversation',
+    ErrorMessage: 'You are not in conversation',
   },
   Wiki_Project_Not_Found: {
     ErrorCode: 'Wiki_Project_Not_Found',
-    ErrorMessage: 'Wiki_Project_Not_Found',
+    ErrorMessage: 'Wiki project not found',
   },
   Redis_Missing: {
     ErrorCode: 'Redis_Missing',
-    ErrorMessage: 'Redis_Missing',
+    ErrorMessage: 'Redis missing',
   },
   Token_Forgot_Password_Expired: {
     ErrorCode: 'Token_Forgot_Password_Expired',
-    ErrorMessage: 'Token_Forgot_Password_Expired',
+    ErrorMessage: 'Token forgot password expired',
   },
   Token_Forgot_Password_Not_Valid: {
     ErrorCode: 'Token_Forgot_Password_Not_Valid',
-    ErrorMessage: 'Token_Forgot_Password_Not_Valid',
+    ErrorMessage: 'Token forgot password not valid',
   },
   Request_Duration_Time_Forgot_Password: {
     ErrorCode: 'Request_Duration_Time_Forgot_Password',
-    ErrorMessage: 'Request_Duration_Time_Forgot_Password',
+    ErrorMessage: 'Request duration time forgot password',
   },
   Invalid_Input_Issue_Post_Id: {
     ErrorCode: 'Invalid_Input_Issue_Post_Id',
-    ErrorMessage: 'Invalid_Input_Issue_Post_Id',
+    ErrorMessage: 'Invalid input issue post id',
   },
   Invalid_Input_Date_Issue: {
     ErrorCode: 'Invalid_Input_Date_Issue',
-    ErrorMessage: 'Invalid_Input_Date_Issue',
+    ErrorMessage: 'Invalid input date issue',
   },
   Forbidden_Resource: {
     ErrorCode: 'Forbidden_Resource',
-    ErrorMessage: 'Forbidden_Resource',
+    ErrorMessage: 'Forbidden resource',
   },
   Project_Version_Invalid_Input: {
     ErrorCode: 'Project_Version_Invalid_Input',
-    ErrorMessage: 'Project_Version_Invalid_Input',
+    ErrorMessage: 'Project version invalid input',
   },
   Issue_Category_Invalid_Input: {
     ErrorCode: 'Issue_Category_Invalid_Input',
-    ErrorMessage: 'Issue_Category_Invalid_Input',
+    ErrorMessage: 'Issue category invalid input',
   },
   Issue_Type_Invalid_Input: {
     ErrorCode: 'Issue_Type_Invalid_Input',
-    ErrorMessage: 'Issue_Type_Invalid_Input',
+    ErrorMessage: 'Issue type invalid input',
   },
   Unauthorized: {
     ErrorCode: 'Unauthorized',
@@ -71,47 +75,47 @@ export const ErrorCustom = {
   },
   Invalid_Input: {
     ErrorCode: 'Invalid_Input',
-    ErrorMessage: 'Invalid_Input',
+    ErrorMessage: 'Invalid input',
   },
   Not_Found: {
     ErrorCode: 'Not_Found',
-    ErrorMessage: 'Not_Found',
+    ErrorMessage: 'Not found',
   },
   Unknown_Error: {
     ErrorCode: 'Unknown_Error',
-    ErrorMessage: 'Unknown_Error',
+    ErrorMessage: 'Unknown error',
   },
   The_Allowed_Number_Of_Calls_Has_Been_Exceeded: {
     ErrorCode: 'The_Allowed_Number_Of_Calls_Has_Been_Exceeded',
-    ErrorMessage: 'The_Allowed_Number_Of_Calls_Has_Been_Exceeded',
+    ErrorMessage: 'The allowed number of calls has been exceeded',
   },
   Email_Not_Found: {
     ErrorCode: 'Email_Not_Found',
-    ErrorMessage: 'Email_Not_Found',
+    ErrorMessage: 'Email not found',
   },
   User_Blocked: {
     ErrorCode: 'User_Blocked',
-    ErrorMessage: 'User_Blocked',
+    ErrorMessage: 'User blocked',
   },
   Email_Or_Password_Not_valid: {
     ErrorCode: 'Email_Or_Password_Not_valid',
-    ErrorMessage: 'Email_Or_Password_Not_valid',
+    ErrorMessage: 'Email or password not valid',
   },
   Email_User_Already_Account_Pending: {
     ErrorCode: 'Email_User_Already_Account_Pending',
-    ErrorMessage: 'Email_User_Already_Account_Pending',
+    ErrorMessage: 'Your account is already pending',
   },
   Email_User_Already_Account: {
     ErrorCode: 'Email_User_Already_Account',
-    ErrorMessage: 'Email_User_Already_Account',
+    ErrorMessage: 'Your account is already',
   },
   Invite_Code_Invalid_Input: {
     ErrorCode: 'Invite_Code_Invalid_Input',
-    ErrorMessage: 'Invite_Code_Invalid_Input',
+    ErrorMessage: 'Invite code invalid input',
   },
   Key_Config_Duplicate: {
     ErrorCode: 'Key_Config_Duplicate',
-    ErrorMessage: 'Key_Config_Duplicate',
+    ErrorMessage: 'Key Config Duplicate',
   },
   Key_Config_Not_Found: {
     ErrorCode: 'Key_Config_Not_Found',
@@ -119,71 +123,71 @@ export const ErrorCustom = {
   },
   Key_Project_Duplicate: {
     ErrorCode: 'Key_Project_Duplicate',
-    ErrorMessage: 'Key_Project_Duplicate',
+    ErrorMessage: 'Key Project Duplicate',
   },
   User_Not_In_Project: {
     ErrorCode: 'User_Not_In_Project',
-    ErrorMessage: 'User_Not_In_Project',
+    ErrorMessage: 'User not in project',
   },
   User_Not_Action_Project: {
     ErrorCode: 'User_Not_Action_Project',
-    ErrorMessage: 'User_Not_Action_Project',
+    ErrorMessage: 'User not action project',
   },
   Project_Not_Found: {
     ErrorCode: 'Project_Not_Found',
-    ErrorMessage: 'Project_Not_Found',
+    ErrorMessage: 'Project not found',
   },
   Email_User_Not_In_System: {
     ErrorCode: 'Email_User_Not_In_System',
-    ErrorMessage: 'Email_User_Not_In_System',
+    ErrorMessage: 'Email user not in system',
   },
   User_Is_Already_In_The_Project: {
     ErrorCode: 'User_Is_Already_In_The_Project',
-    ErrorMessage: 'User_Is_Already_In_The_Project',
+    ErrorMessage: 'User is already in the project',
   },
   Email_User_Not_Active: {
     ErrorCode: 'Email_User_Not_Active',
-    ErrorMessage: 'Email_User_Not_Active',
+    ErrorMessage: 'Email user not active',
   },
   User_Not_Pending_Request_Join_Project: {
     ErrorCode: 'User_Not_Pending_Request_Join_Project',
-    ErrorMessage: 'User_Not_Pending_Request_Join_Project',
+    ErrorMessage: 'User not pending request join project',
   },
   User_Project_Not_Active: {
     ErrorCode: 'User_Project_Not_Active',
-    ErrorMessage: 'User_Project_Not_Active',
+    ErrorMessage: 'User project not active',
   },
   Can_Not_Update_Pm_Project: {
     ErrorCode: 'Can_Not_Update_Pm_Project',
-    ErrorMessage: 'Can_Not_Update_Pm_Project',
+    ErrorMessage: 'Can not update pm project',
   },
   Project_Issue_Handle_Id_Not_Found: {
     ErrorCode: 'Project_Issue_Handle_Id_Not_Found',
-    ErrorMessage: 'Project_Issue_Handle_Id_Not_Found',
+    ErrorMessage: 'Project issue handle id not found',
   },
   Invalid_Pre_Or_Post_Update: {
     ErrorCode: 'Invalid_Pre_Or_Post_Update',
-    ErrorMessage: 'Invalid_Pre_Or_Post_Update',
+    ErrorMessage: 'Invalid pre or post update',
   },
   User_Assignee_Not_In_Project: {
     ErrorCode: 'User_Assignee_Not_In_Project',
-    ErrorMessage: 'User_Assignee_Not_In_Project',
+    ErrorMessage: 'User assignee not in project',
   },
   User_Assignee_In_Project_Not_Active: {
     ErrorCode: 'User_Assignee_In_Project_Not_Active',
-    ErrorMessage: 'User_Assignee_In_Project_Not_Active',
+    ErrorMessage: 'User assignee in project not active',
   },
   Issue_Not_Invalid: {
     ErrorCode: 'Issue_Not_Invalid',
-    ErrorMessage: 'Issue_Not_Invalid',
+    ErrorMessage: 'Issue not invalid',
   },
   Comment_Content_Or_Files_Required: {
     ErrorCode: 'Comment_Content_Or_Files_Required',
-    ErrorMessage: 'Comment_Content_Or_Files_Required',
+    ErrorMessage: 'Comment content or files required',
   },
   Comment_Create_Failed: {
     ErrorCode: 'Comment_Create_Failed',
-    ErrorMessage: 'Comment_Create_Failed',
+    ErrorMessage: 'Comment create failed',
   },
 };
 export type ErrorValues = (typeof ErrorCustom)[keyof typeof ErrorCustom];

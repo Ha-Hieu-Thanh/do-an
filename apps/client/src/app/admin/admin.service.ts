@@ -8,7 +8,7 @@ import { ListProjectDto } from './dto/list-project.dto';
 import User from '@app/database-type-orm/entities/task-manager/User';
 import Project from '@app/database-type-orm/entities/task-manager/Project';
 import { Exception } from '@app/core/exception';
-import { ErrorCustom, TypeCacheData } from 'libs/constants/enum';
+import { ErrorCustom, TypeCacheData, UserRole } from 'libs/constants/enum';
 
 @Injectable()
 export class AdminService {
@@ -25,6 +25,10 @@ export class AdminService {
 
     if (!user) {
       throw new Exception(ErrorCustom.Not_Found);
+    }
+
+    if (user?.role === UserRole.ADMIN) {
+      throw new Exception(ErrorCustom.CAN_NOT_BLOCK_ADMIN);
     }
 
     await this.dataSource.getRepository(User).update(

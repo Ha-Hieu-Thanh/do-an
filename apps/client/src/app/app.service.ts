@@ -96,11 +96,18 @@ export class AppService {
   }
 
   async readNotifications(userId: number, params: ReadNotificationsDto) {
-    await this.notificationMemberRepository.update(
-      { userId, notificationId: In(params.notificationIds) },
-      { isRead: ReadNotification.READ },
-    );
-
-    return true;
+    if (!params.isReadAll && params.notificationIds) {
+      await this.notificationMemberRepository.update(
+        { userId, notificationId: In(params.notificationIds) },
+        { isRead: ReadNotification.READ },
+      );
+      return true;
+    } else {
+      await this.notificationMemberRepository.update(
+        { userId, isRead: ReadNotification.UNREAD },
+        { isRead: ReadNotification.READ },
+      );
+      return true;
+    }
   }
 }

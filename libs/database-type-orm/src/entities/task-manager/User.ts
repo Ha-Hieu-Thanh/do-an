@@ -34,18 +34,6 @@ export default class User {
   })
   avatar?: string;
 
-  @Column({
-    name: 'retry_otp_count',
-    type: 'tinyint',
-    unsigned: true,
-    default: 0,
-    comment: 'Số lần tài khoản nhập mã otp trong 1 khoảng thời gian',
-  })
-  retryOtpCount: number;
-
-  @CreateDateColumn({ name: 'expire_retry_otp', type: 'datetime', nullable: true })
-  expireRetryOtp: string;
-
   @Column({ name: 'gender', type: 'tinyint', unsigned: true, nullable: true })
   gender: Gender;
 
@@ -92,13 +80,6 @@ export default class User {
     default: UserStatus.ACTIVE,
   })
   status: UserStatus;
-
-  @Column({
-    name: 'token_exp',
-    type: 'timestamp',
-    nullable: true,
-  })
-  tokenExp: string;
 
   @Column({ name: 'invite_code', type: 'varchar', length: 255, nullable: true, select: false })
   inviteCode: string | null;

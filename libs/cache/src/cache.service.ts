@@ -58,8 +58,10 @@ export class GlobalCacheService {
     return await this.cacheManager.get(key);
   }
 
-  async set(key: string, data: any, ttl?: number) {
-    return await this.cacheManager.set(key, data, ttl);
+  async set(key: string, data: any, ttl: number = 400) {
+    return await this.cacheManager.set(key, data, {
+      ttl: ttl,
+    } as any);
   }
 
   async del(key: string) {

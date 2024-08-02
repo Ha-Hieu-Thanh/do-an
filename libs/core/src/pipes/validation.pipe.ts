@@ -46,11 +46,11 @@ export function IsDateCustom(
         validate(date: string, params: ValidationArguments): boolean {
           if (!date || !isString(date)) return false;
 
-          // const regEx = /^\d{4}-\d{2}-\d{2}$/;
           // regex for YYYY-MM-DD HH:mm
-          const regEx = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
+          const regEx1 = /^\d{4}-\d{2}-\d{2}$/;
+          const regEx2 = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
 
-          if (!date.match(regEx)) return false; // Invalid format
+          if (!date.match(regEx1) && !date.match(regEx2)) return false; // Invalid format
 
           const d = new Date(date);
           const dNum = d.getTime();

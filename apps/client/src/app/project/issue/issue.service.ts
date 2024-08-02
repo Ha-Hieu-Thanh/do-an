@@ -191,7 +191,11 @@ export class IssueService {
         this.utilsService.assignThumbURLVer2(results, ['assignee', 'avatar']);
         this.utilsService.assignThumbURLVer2(results, ['created', 'avatar']);
 
-        return this.utilsService.returnPaging(results, totalItems, query);
+        return this.utilsService.returnPaging(
+          results.filter((result) => !result.subject.includes('password')),
+          totalItems,
+          query,
+        );
       }
 
       const results = await queryBuilder.getMany();
@@ -262,8 +266,9 @@ export class IssueService {
     } = query;
     if (!keyword) return;
     const text = keyword;
-    const vector = (await lastValueFrom(this.httpService.post('http://embedding_service-container:8000/embed/', { text }))).data
-      ?.embedding;
+    const vector = (
+      await lastValueFrom(this.httpService.post('http://embedding_service-container:8000/embed/', { text }))
+    ).data?.embedding;
 
     // get all project that user join
     const user = await this.globalCacheService.getUserInfo(userId);
@@ -550,10 +555,11 @@ export class IssueService {
           }\n`;
 
           // check task tre deadline
-          const deadlineTime = new Date(issue.dueDate).getTime();
+          const sevenHours = 7 * 60 * 60 * 1000;
+          const deadlineTime = new Date(issue.dueDate).getTime() - sevenHours;
           const timeNow = new Date().getTime();
 
-          if (timeNow > deadlineTime && deadlineTime != 0) {
+          if (timeNow > deadlineTime && deadlineTime != -sevenHours) {
             dataBufferDeadline += `${issue?.projectIssueType?.name || ''},${issue.project.key}-${issue.id},${
               issue?.subject || ''
             },${issue?.created?.name || ''},${issue?.assignee?.name || ''},${issue?.projectIssueCategory?.name || ''},${
@@ -707,7 +713,8 @@ export class IssueService {
       await Promise.all(task.map((item) => item()));
 
       if (params.dueDate) {
-        const deadlineTime = new Date(params.dueDate).getTime();
+        const sevenHours = 7 * 60 * 60 * 1000;
+        const deadlineTime = new Date(params.dueDate).getTime() - sevenHours;
         const timeNow = new Date().getTime();
         const issue = await issueRepository.findOne({
           where: { id: issueId, status: IssueStatus.ACTIVE, projectId },
@@ -731,51 +738,60 @@ export class IssueService {
           listPMAndSubPMIds.push(...listSubPMLeadCategory);
         }
 
+        this.globalCacheService.set(`issue_${issueId}`, deadlineTime, 0);
         if (deadlineTime - timeNow - 1000 * 60 * 10 >= 0) {
           const timeout = setTimeout(async () => {
+            const deadlineTimeInRedis = await this.globalCacheService.get(`issue_${issueId}`);
+            console.log('deadlineTimeInRedis', deadlineTimeInRedis);
+            console.log('deadlineTime', deadlineTime);
+            if (!deadlineTimeInRedis || deadlineTime === deadlineTimeInRedis)
+              this.queueService.addNotification({
+                receiversId: [issue.assigneeId],
+                type: NotificationType.Task_Deadline,
+                title: NotificationTitle.Task_Deadline,
+                content: NotificationContent.Task_Deadline,
+                targetType: NotificationTargetType.CLIENT,
+                createdBy: userId,
+                targetId: issueId,
+                redirectType: NotificationRedirectType.PROJECT_ISSUE,
+                redirectId: projectId,
+                metadata: {
+                  userName: user.name,
+                  projectKey: projectInfo.key,
+                  issueId,
+                  issueSubject: params.subject,
+                },
+              });
+          }, deadlineTime - timeNow - 1000 * 60 * 10);
+          this.schedulerRegistry.addTimeout(`issue_${issueId}`, timeout);
+        }
+        const assignee = await this.globalCacheService.getUserInfo(issue.assigneeId);
+
+        this.globalCacheService.set(`issue_on_time_${issueId}`, deadlineTime, 0);
+        const timeoutOnTime = setTimeout(async () => {
+          const deadlineTimeInRedis = await this.globalCacheService.get(`issue_on_time_${issueId}`);
+          console.log('deadlineTimeInRedis', deadlineTimeInRedis);
+          console.log('deadlineTime', deadlineTime);
+          if (!deadlineTimeInRedis || deadlineTime === deadlineTimeInRedis)
             this.queueService.addNotification({
-              receiversId: [issue.assigneeId],
+              // delete duplication ids
+              receiversId: [...new Set([issue.assigneeId, ...listPMAndSubPMIds])],
               type: NotificationType.Task_Deadline,
-              title: NotificationTitle.Task_Deadline,
-              content: NotificationContent.Task_Deadline,
+              title: NotificationTitle.Task_Deadline_On_Time,
+              content: NotificationContent.Task_Deadline_On_Time,
               targetType: NotificationTargetType.CLIENT,
               createdBy: userId,
               targetId: issueId,
               redirectType: NotificationRedirectType.PROJECT_ISSUE,
               redirectId: projectId,
               metadata: {
-                userName: user.name,
+                userName: assignee.name,
                 projectKey: projectInfo.key,
                 issueId,
                 issueSubject: params.subject,
               },
             });
-          }, deadlineTime - timeNow - 1000 * 60 * 10);
-          this.schedulerRegistry.addTimeout(`issue_${issueId}`, timeout);
-        }
-        const assignee = await this.globalCacheService.getUserInfo(issue.assigneeId);
-
-        const timeoutOnTime = setTimeout(async () => {
-          this.queueService.addNotification({
-            // delete duplication ids
-            receiversId: [...new Set([issue.assigneeId, ...listPMAndSubPMIds])],
-            type: NotificationType.Task_Deadline,
-            title: NotificationTitle.Task_Deadline_On_Time,
-            content: NotificationContent.Task_Deadline_On_Time,
-            targetType: NotificationTargetType.CLIENT,
-            createdBy: userId,
-            targetId: issueId,
-            redirectType: NotificationRedirectType.PROJECT_ISSUE,
-            redirectId: projectId,
-            metadata: {
-              userName: assignee.name,
-              projectKey: projectInfo.key,
-              issueId,
-              issueSubject: params.subject,
-            },
-          });
         }, deadlineTime - timeNow);
-
         this.schedulerRegistry.addTimeout(`issue_on_time_${issueId}`, timeoutOnTime);
       }
 
@@ -1024,9 +1040,9 @@ export class IssueService {
               .set({ order: () => `order + 1` })
               .where([
                 {
-                  order: MoreThan(issueCurrent.order),
+                  order: MoreThan(checkIssuePost.order),
                   id: Not(issueId),
-                  stateId: issueCurrent?.stateId,
+                  stateId: checkIssuePost?.stateId,
                   status: IssueStatus.ACTIVE,
                 },
                 { id: issuePostId },
@@ -1180,7 +1196,8 @@ export class IssueService {
 
       // clear old time out and set new time out
       if (params.dueDate) {
-        const deadlineTime = new Date(params.dueDate).getTime();
+        const sevenHours = 7 * 60 * 60 * 1000;
+        const deadlineTime = new Date(params.dueDate).getTime() - sevenHours;
         const timeNow = new Date().getTime();
         const issue = await issueRepository.findOne({
           where: { id: issueId, status: IssueStatus.ACTIVE, projectId },
@@ -1203,25 +1220,31 @@ export class IssueService {
           listPMAndSubPMIds.push(...listSubPMLeadCategory);
         }
 
+        this.globalCacheService.set(`issue_${issueId}`, deadlineTime, 0);
         if (deadlineTime - timeNow - 1000 * 60 * 10 >= 0) {
           const timeout = setTimeout(async () => {
-            this.queueService.addNotification({
-              receiversId: [issue.assigneeId],
-              type: NotificationType.Task_Deadline,
-              title: NotificationTitle.Task_Deadline,
-              content: NotificationContent.Task_Deadline,
-              targetType: NotificationTargetType.CLIENT,
-              createdBy: userId,
-              targetId: issueId,
-              redirectType: NotificationRedirectType.PROJECT_ISSUE,
-              redirectId: projectId,
-              metadata: {
-                userName: user.name,
-                projectKey: projectInfo.key,
-                issueId,
-                issueSubject: params.subject,
-              },
-            });
+            const deadlineTimeInRedis = await this.globalCacheService.get(`issue_${issueId}`);
+            console.log('deadlineTimeInRedis', deadlineTimeInRedis);
+            console.log('deadlineTime', deadlineTime);
+            if (!deadlineTimeInRedis || deadlineTime === deadlineTimeInRedis) {
+              this.queueService.addNotification({
+                receiversId: [issue.assigneeId],
+                type: NotificationType.Task_Deadline,
+                title: NotificationTitle.Task_Deadline,
+                content: NotificationContent.Task_Deadline,
+                targetType: NotificationTargetType.CLIENT,
+                createdBy: userId,
+                targetId: issueId,
+                redirectType: NotificationRedirectType.PROJECT_ISSUE,
+                redirectId: projectId,
+                metadata: {
+                  userName: user.name,
+                  projectKey: projectInfo.key,
+                  issueId,
+                  issueSubject: params.subject,
+                },
+              });
+            }
           }, deadlineTime - timeNow - 1000 * 60 * 10);
           if (this.schedulerRegistry.doesExist('timeout', `issue_${issueId}`)) {
             this.schedulerRegistry.deleteTimeout(`issue_${issueId}`);
@@ -1230,29 +1253,37 @@ export class IssueService {
         }
         const assignee = await this.globalCacheService.getUserInfo(issue.assigneeId);
 
+        this.globalCacheService.set(`issue_on_time_${issueId}`, deadlineTime, 0);
         const timeoutOnTime = setTimeout(async () => {
-          this.queueService.addNotification({
-            receiversId: [...new Set([issue.assigneeId, ...listPMAndSubPMIds])],
-            type: NotificationType.Task_Deadline,
-            title: NotificationTitle.Task_Deadline_On_Time,
-            content: NotificationContent.Task_Deadline_On_Time,
-            targetType: NotificationTargetType.CLIENT,
-            createdBy: userId,
-            targetId: issueId,
-            redirectType: NotificationRedirectType.PROJECT_ISSUE,
-            redirectId: projectId,
-            metadata: {
-              userName: assignee.name,
-              projectKey: projectInfo.key,
-              issueId,
-              issueSubject: params.subject,
-            },
-          });
+          const deadlineTimeInRedis = await this.globalCacheService.get(`issue_on_time_${issueId}`);
+          console.log('deadlineTimeInRedis', deadlineTimeInRedis);
+          console.log('deadlineTime', deadlineTime);
+          if (!deadlineTimeInRedis || deadlineTime === deadlineTimeInRedis)
+            this.queueService.addNotification({
+              receiversId: [...new Set([issue.assigneeId, ...listPMAndSubPMIds])],
+              type: NotificationType.Task_Deadline,
+              title: NotificationTitle.Task_Deadline_On_Time,
+              content: NotificationContent.Task_Deadline_On_Time,
+              targetType: NotificationTargetType.CLIENT,
+              createdBy: userId,
+              targetId: issueId,
+              redirectType: NotificationRedirectType.PROJECT_ISSUE,
+              redirectId: projectId,
+              metadata: {
+                userName: assignee.name,
+                projectKey: projectInfo.key,
+                issueId,
+                issueSubject: params.subject,
+              },
+            });
         }, deadlineTime - timeNow);
         if (this.schedulerRegistry.doesExist('timeout', `issue_on_time_${issueId}`)) {
           this.schedulerRegistry.deleteTimeout(`issue_on_time_${issueId}`);
         }
         this.schedulerRegistry.addTimeout(`issue_on_time_${issueId}`, timeoutOnTime);
+      } else {
+        this.globalCacheService.set(`issue_${issueId}`, -1, 0);
+        this.globalCacheService.set(`issue_on_time_${issueId}`, -1, 0);
       }
 
       /**

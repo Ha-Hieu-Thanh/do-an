@@ -22,7 +22,7 @@ import Project from '@app/database-type-orm/entities/task-manager/Project';
           port: configService.get('redis').port,
           db: configService.get('redis').db,
           password: configService.get('redis').password,
-          ttl: configService.get('redis').ttl,
+          // ttl: configService.get('redis').ttl,
         };
       },
     }),
