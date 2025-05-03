@@ -15,6 +15,7 @@
 
 ```bash
 git clone https://github.com/Ha-Hieu-Thanh/do-an.git
+
 cd do-an
 ```
 
@@ -22,6 +23,8 @@ cd do-an
 
 ```bash
 minikube start --cpus=6 --memory=12288 --driver=docker
+
+minikube addons enable ingress
 ```
 
 ### 3. Deploy các tài nguyên Kubernetes
