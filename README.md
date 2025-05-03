@@ -1,75 +1,57 @@
-## Description
+# 🎓 Đồ Án Tốt Nghiệp - Triển khai Hệ thống Tìm kiếm và Gợi ý bằng Kubernetes
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 📦 Repository Chính
 
-## Installation
+- Backend & Triển khai: [backend-do-an](https://github.com/Ha-Hieu-Thanh/do-an)
+- Frontend: [frontend-do-an](https://github.com/Ha-Hieu-Thanh/front-end-do-an)
+- Nginx Server (Phục vụ kiểm thử chiến lược cân bằng tải): [nginx-server](https://github.com/Ha-Hieu-Thanh/nginx-server)
+- Service chuyển text thành vector: [embedding_service](https://github.com/Ha-Hieu-Thanh/embedding_service)
 
-```bash
-$ yarn install
-```
+---
 
-## Tip .env
+## 🚀 Hướng dẫn triển khai nhanh
 
-git rm --cached .env
-git add .gitignore
-git commit -m "Remove .env from Git history and update .gitignore"
-git push
-
-## Running the app
+### 1. Clone repository chính
 
 ```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+git clone https://github.com/Ha-Hieu-Thanh/do-an.git
+cd do-an
 ```
 
-## Test
+### 2. Khởi tạo Minikube với tài nguyên phù hợp
 
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+minikube start --cpus=6 --memory=12288 --driver=docker
 ```
 
-## Support
+### 3. Deploy các tài nguyên Kubernetes
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+kubectl apply -f k8s/
+```
 
-## Stay in touch
+### 4. Kích hoạt tunnel để truy cập từ bên ngoài
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+minikube tunnel
+```
 
-## License
+### 5. (Tuỳ chọn) Tạo đường dẫn public với ngrok
 
-Nest is [MIT licensed](LICENSE).
+```bash
+ngrok http http://localhost
+```
 
-## Step create project
+---
 
-npm install -g @nestjs/cli
+## 💡 Ghi chú
 
-- nest new common
-- nest generate app client
-- nest generate lib config
-- setup configuration
+- Đảm bảo đã cài đặt đầy đủ: `kubectl`, `minikube`, `docker`, và `ngrok`.
+- Trong thư mục `k8s/` đã bao gồm định nghĩa triển khai cho backend, frontend, dịch vụ embedding, và cấu hình nginx (nếu có).
+- Bạn có thể chỉnh sửa cấu hình service, deployment hoặc ingress tùy theo yêu cầu thử nghiệm.
 
-## Use
+---
 
-- run create resource ( module, service, controller)
-  nest g res app
-- run create module
-  nest g mo app
-- run create service
-  nest g s cats
-- nest g library my-library
+## 📞 Liên hệ
+
+Mọi thắc mắc, vui lòng liên hệ qua GitHub hoặc mở issue tại repository tương ứng.
